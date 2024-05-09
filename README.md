@@ -1,5 +1,5 @@
 # 2024-GP-1
-# Murshid: An Energy Monitor, Recommendation, and Safety Alert System
+# Murshid: An Energy Monitoring, Recommendation, and Safety Alert System
 
 ## Introduction
 
