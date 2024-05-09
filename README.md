@@ -8,8 +8,9 @@ Murshid is a mobile application designed to empower homeowners with information 
 
 ## Technology 
 
-- Frontend: Used react native to develop ios and android mobile applications. 
-- Backend: Python for API endpoint integration. 
+- Frontend: Used React Native (Expo) to develop ios and android mobile applications. 
+- Backend: Python for API endpoint integration.
+- Emulator: Xcode for iOS and Android Studio for Android.
 - Database: Firebase Firestore for real-time data management.
 
 
