@@ -52,14 +52,14 @@ python api.py
 `
 
 2. **Launch the application using Expo**:
-  - Run the following command to start the Metro bundler and launch the application:
+   - Run the following command to start the Metro bundler and launch the application:
 `
 npx expo start
 `
 
 3. **Launch on iOS or Android**:
-  - **For emulators:** The iOS Simulator or Android Emulator will automatically open if configured.
-  - **For physical devices:** Use the Expo client app on your device then scan the QR code displayed in the Expo CLI to open your project directly on your device.
+   - **For emulators:** The iOS Simulator or Android Emulator will automatically open if configured.
+   - **For physical devices:** Use the Expo client app on your device then scan the QR code displayed in the Expo CLI to open your project directly on your device.
 
 
 ### Additional Notes
