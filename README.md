@@ -23,27 +23,30 @@ Murshid is a mobile application that gives homeowners precise control over their
 - Android Studio for Android emulation and Xcode for iOS emulation.
 - Visual Studio Code is recommended for development.
 
-
+<br>
 ### Installation 
 
 **1. Clone the repository:**
-   - git clone https://github.com/yourusername/2024-GP-1.git
+   - git clone https://github.com/basmaks/2024-GP-1.git
    - Navigate to the project directory: cd 2024-GP-1
 
 **2. Install dependencies:**
-   - Run npm install to install all necessary dependencies.
+   - Install all necessary dependencies using the following command:
+`
+   npm install
+`
 
-
+<br>
 ### Configuration 
 
-- **Firebase Configuration:** Add the Firebase service account credentials path to api.py.
-- **Expo Configuration:** Ensure app.json is set up with the correct settings.
+- **Firebase configuration:** Add the Firebase service account credentials path to api.py.
+- **Expo configuration:** Ensure app.json is set up with the correct settings.
 
-
+<br>
 ### Usage
 
 1. **Start the Flask server**:
-   - Run the command below to start the Flask server defined in api.py. This step is necessary to enable real-time data syncing, which populates the data charts in the React Native app.
+   - Run the command below to start the Flask server defined in `api.py`. This step is necessary to enable real-time data syncing, which populates the data charts in the React Native app.
 `
    python api.py
 `
@@ -58,7 +61,7 @@ Murshid is a mobile application that gives homeowners precise control over their
   - **For emulators:** The iOS Simulator or Android Emulator will automatically open if configured.
   - **For physical devices:** Use the Expo client app on your device then scan the QR code displayed in the Expo CLI to open your project directly on your device.
 
-
+<br>
 ### Additional Notes
 
 - Review `metro.config.js` for any necessary configuration adjustments.
