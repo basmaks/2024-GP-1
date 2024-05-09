@@ -27,8 +27,8 @@ Murshid is a mobile application that gives homeowners precise control over their
 ### Installation 
 
 **1. Clone the repository:**
-   - git clone https://github.com/basmaks/2024-GP-1.git
-   - Navigate to the project directory: cd 2024-GP-1
+   - `git clone https://github.com/basmaks/2024-GP-1.git`
+   - Navigate to the project directory: `cd 2024-GP-1`
 
 **2. Install dependencies:**
    - Install all necessary dependencies using the following command:
