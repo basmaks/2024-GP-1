@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
 
   greetingContainer: {
-    alignItems: 'flex-end', // Align to the right
+    alignItems: 'flex-end', // Align text to the right
     paddingTop: 20,
     paddingHorizontal: 20, // Add horizontal padding
 
