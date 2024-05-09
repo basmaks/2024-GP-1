@@ -137,7 +137,7 @@ export default function SignUpScreen() {
           console.error('Error creating user:', error.message);
           let errorMessage = error.message;
           if (errorMessage.includes('auth/email-already-in-use')) {
-            errorMessage = 'البريد الإلكتروني مستخدم بالفعل';
+            errorMessage = 'البريد الإلكتروني مستخدم بالفعل، الرجاء اختيار عنوان بريد إلكتروني آخر.';
           } else if (errorMessage.includes('auth/invalid-email')) {
             errorMessage = 'يرجى استخدام بريد إلكتروني صحيح';
           } else if (errorMessage.includes('auth/weak-password')) {
