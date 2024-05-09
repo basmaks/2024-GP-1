@@ -17,7 +17,7 @@ import Kwh_WeeklyChart from '../charts/Kwh_WeeklyChart';
 import Kwh_MonthlyChart from '../charts/Kwh_MonthlyChart';
 import Kwh_YearlyChart from '../charts/Kwh_YearlyChart';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { collection, getFirestore, where, getDocs, addDoc, updateDoc } from 'firebase/firestore';
+import { collection, getFirestore, where, getDocs, addDoc, updateDoc,setDoc,doc } from 'firebase/firestore';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
@@ -38,22 +38,25 @@ export default function HomeScreen() {
   const getDisplayText = (index) => displayTextMapping[index];
 
   const saveToken = async () => {
-    let user = auth.currentUser
-    let token = await AsyncStorage.getItem('token')
-    const usersRef = collection(db, 'notificationsdb');
+    let user = auth.currentUser;
+    if (!user) {
+        console.error('No authenticated user found!');
+        return;
+    }
+    let token = await AsyncStorage.getItem('token');
+    const userDocRef = doc(db, 'notificationsdb', user.uid); // Create a reference to the specific document for the user
 
     try {
-      await addDoc(usersRef, {
+      await setDoc(userDocRef, {
         notifications: 0,
         uid: user.uid,
         token_id: token
-      })
-      console.info('token saved successfully!');
+      }, { merge: true }); // Use setDoc with merge option to update or create the document
+      console.info('Token saved successfully!');
     } catch (error) {
-      console.error('Error saving token: ', error);
+      console.error('Error saving token:', error);
     }
   };
-
 
   useEffect(() => {
     saveToken()
