@@ -33,7 +33,7 @@ Murshid is a mobile application that gives homeowners precise control over their
 **2. Install dependencies:**
    - Install all necessary dependencies using the following command:
 `
-   npm install
+npm install
 `
 
 
@@ -48,13 +48,13 @@ Murshid is a mobile application that gives homeowners precise control over their
 1. **Start the Flask server**:
    - Run the command below to start the Flask server defined in `api.py`. This step is necessary to enable real-time data syncing, which populates the data charts in the React Native app.
 `
-   python api.py
+python api.py
 `
 
 2. **Launch the application using Expo**:
   - Run the following command to start the Metro bundler and launch the application:
 `
-  npx expo start
+npx expo start
 `
 
 3. **Launch on iOS or Android**:
