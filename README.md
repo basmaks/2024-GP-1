@@ -48,16 +48,10 @@ npm install
 ### Usage
 
 1. **Start the Flask server**:
-   - Run the command below to start the Flask server defined in `api.py`. This step is necessary to enable real-time data syncing, which populates the data charts in the React Native app.
-`
-python api.py
-`
+   - Run the following command in `api.py` to start the Flask server: `python api.py`. This step is necessary to enable real-time data syncing, which populates the data charts in the React Native app.
 
 2. **Launch the application using Expo**:
-   - Run the following command to start the Metro bundler and launch the application:
-`
-npx expo start
-`
+   - Run the following command to start the Metro bundler and launch the application: `npx expo start`.
 
 3. **Launch on iOS or Android**:
    - **For emulators:** The iOS Simulator or Android Emulator will automatically open if configured.
