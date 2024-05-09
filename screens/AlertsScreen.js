@@ -7,12 +7,11 @@ import { useNavigation } from '@react-navigation/native';
 import { themeColors } from '../theme';
 import * as Icons from 'react-native-heroicons/outline';
 import { auth} from '../config/firebase'
-import { collection, query, where, getDocs, doc } from 'firebase/firestore';
+import { doc, getDoc,getDocs, setDoc, addDoc, collection } from "firebase/firestore";
 import { db } from '../config/firebase';
 import { LineChart } from 'react-native-chart-kit';
 import Kwh_RealTimeChart from '../charts/Kwh_RealTimeChart';//1
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 export default function AlertsScreen() {
 
   const navigation = useNavigation();
@@ -23,37 +22,72 @@ export default function AlertsScreen() {
 
   //normal fetches all hazards
   useEffect(() => {
-    const fetchHazards = async () => {
-      try {
-        const hazardsRef = collection(db, 'hazards');
-        const querySnapshot = await getDocs(hazardsRef);
-        const hazardData = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          title: doc.data().title,
-          date: getRandomDate(),
-          time: getRandomTime()
-        }));
-        setHazards(hazardData);
-      } catch (error) {
-        console.error('Error fetching hazards:', error);
-      }
-    };
+ // Fetch user alerts and hazard titles
+const fetchUserAlerts = async () => {
+  try {
+    // Fetch user alerts
+    const userAlertsRef = collection(db, 'userAlerts', auth.currentUser.uid, 'alerts');
+    const querySnapshot = await getDocs(userAlertsRef);
+    const userAlertsData = querySnapshot.docs.map(doc => ({
+      hazardId: doc.data().hazardId,
+      timestamp: doc.data().timestamp.toDate()
+    }));
+
+    // Fetch hazard titles based on hazardIds from userAlerts
+    const hazardTitles = {}; // Map to store hazard titles
+    const hazardsRef = collection(db, 'hazards');
+    const hazardsSnapshot = await getDocs(hazardsRef);
+    hazardsSnapshot.forEach(doc => {
+      hazardTitles[doc.id] = doc.data().title;
+    });
+
+    // Update user alerts data with hazard titles
+    const userAlertsWithTitles = userAlertsData.map(alert => ({
+      ...alert,
+      title: hazardTitles[alert.hazardId]
+    }));
+
+    // Set the updated user alerts data with titles to state
+    setHazards(userAlertsWithTitles);
+  } catch (error) {
+    console.error('Error fetching user alerts:', error);
+  }
+};
+
+async function sendPushNotification(expoPushToken) {
+  const message = {
+    to: expoPushToken,
+    sound: 'default',
+    title: 'Original Title',
+    body: 'And here is the body!',
+    data: { someData: 'goes here' },
+  };
+
+  await fetch('https://exp.host/--/api/v2/push/send', {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      'Accept-encoding': 'gzip, deflate',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(message),
+  });
+}
+
+    
+    fetchUserAlerts();
 
 
-    //condition for hazard01 overloaded circuit example used: exceeding 5kwh
+
     const checkDailyUsage = async () => {
       try {
-        // Fetch real-time usage data from your API
         const response = await fetch('http://127.0.0.1:5000/api/getRecentUsage');
-    
-        // Check if the response is successful
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
     
         const jsonData = await response.json();
     
-        // Calculate total daily usage
         let totalDailyUsage = 0;
         for (const deviceId in jsonData) {
           const device = jsonData[deviceId];
@@ -67,41 +101,80 @@ export default function AlertsScreen() {
           }
         }
     
-        // Update daily usage exceeded state
-        setDailyUsageExceeded(totalDailyUsage > 5);
-    
-        // Check if hazard01 occurred
+        // Check for each hazard condition
         if (totalDailyUsage > 5) {
-          // Fetch the Expo push token from Firebase for the current user
-          const usersRef = collection(db, 'notificationsdb');
-          const querySnapshot = await getDocs(query(usersRef, where('uid', '==', auth.currentUser.uid)));
-    
-          if (!querySnapshot.empty) {
-            const userData = querySnapshot.docs[0].data();
-            const expoPushToken = userData.token_id;
-    
-            // Check if expoPushToken is available
-            if (expoPushToken) {
-              // Send push notification
-              await sendPushNotification(expoPushToken);
-            }
-          }
+          handleHazard('hazard01');
         }
-    
+        if (totalDailyUsage > 10) {
+          handleHazard('hazard02');
+        }
+        if (totalDailyUsage > 20) {
+          handleHazard('hazard03');
+        }
+        if (totalDailyUsage > 29) {
+          handleHazard('hazard04');
+        }
+        if (totalDailyUsage > 2) {
+          handleHazard('hazard05');
+        }
+        if (totalDailyUsage > 67) {
+          handleHazard('hazard06');
+        }
+        if (totalDailyUsage > 76) {
+          handleHazard('hazard07');
+        }
       } catch (error) {
         console.error('Error fetching real-time usage:', error);
       }
     };
+    
+    const handleHazard = async (hazardId) => {
+      try {
+        const userUid = auth.currentUser?.uid;
+        if (!userUid) {
+          console.error('No authenticated user available.');
+          return;
+        }
+    
+        // Directly get the user's notification settings document
+        const userDocRef = doc(db, 'notificationsdb', userUid);
+        const userDocSnapshot = await getDoc(userDocRef);
+    
+        if (!userDocSnapshot.exists()) {
+          console.error('User data not found.');
+          return;
+        }
+    
+        const userData = userDocSnapshot.data();
+        console.log('userData: ', userData);
+        const expoPushToken = userData.token_id;
+    
+        if (expoPushToken) {
+          await sendPushNotification(expoPushToken);  // Assuming this function is properly defined elsewhere
+          const userAlertsRef = collection(db, 'userAlerts', userUid, 'alerts');
+          await addDoc(userAlertsRef, {
+            hazardId: hazardId,
+            timestamp: new Date()
+          });
+          console.log('Hazard alert added successfully.');
+        } else {
+          console.error('No push token available.');
+        }
+      } catch (error) {
+        console.error('Error handling hazard:', error);
+      }
+    };
+
     //done condition1
 
 
-    fetchHazards(); // Fetch hazards when component mounts regardless of condition
+    fetchUserAlerts();
     checkDailyUsage(); // Check daily usage when component mounts for condition 1 hazard01
-
+    
 
      // Fetch hazards and check daily usage every 5 minutes for hazard01
      const intervalId = setInterval(() => {
-      fetchHazards();
+      fetchUserAlerts();
       checkDailyUsage();
     }, 5 * 60 * 1000);
 
@@ -109,19 +182,22 @@ export default function AlertsScreen() {
     return () => clearInterval(intervalId);
 
   }, []);
+  
 
   const renderHazardItem = ({ item }) => (
     <View style={styles.hazardItem}>
-        <View style={styles.contentContainer}>
-      <Text style={styles.hazardTitle}>{item.title}</Text>
-      <Icons.ExclamationCircleIcon size={24} style={styles.icon} />
+      <View style={styles.contentContainer}>
+        <Text style={styles.hazardTitle}>{item.title}</Text>
+        <Icons.ExclamationCircleIcon size={24} style={styles.icon} />
       </View>
       <View style={styles.dateTimeContainer}>
-        <Text style={styles.dateTimeText}>Date: {item.date}</Text>
-        <Text style={styles.dateTimeText}>Time: {item.time}</Text>
-      </View>
+  <Text style={styles.dateTimeTextLeft}>التاريخ: {item.timestamp.toLocaleDateString('ar-EG')}</Text>
+  <Text style={styles.dateTimeTextRight}>الوقت: {item.timestamp.toLocaleTimeString('ar-EG')}</Text>
+</View>
+
     </View>
   );
+  
 
 
   
@@ -133,10 +209,12 @@ export default function AlertsScreen() {
 
       <Text style={styles.header}>التنبيهات</Text>
       <FlatList
-          data={hazards.filter(item => item.id === 'hazard01')}
-          renderItem={renderHazardItem}
-        keyExtractor={item => item.id}
-      />
+  data={hazards}
+  renderItem={renderHazardItem}
+  keyExtractor={(item, index) => index.toString()} // Use index as the key
+/>
+
+
       </View>
     </View>
   );
@@ -202,21 +280,16 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     
   },
+  dateTimeTextLeft: {
+    fontSize: 14,
+    color: 'gray',
+    textAlign: 'left',
+  },
+  dateTimeTextRight: {
+    fontSize: 14,
+    color: 'gray',
+    textAlign: 'right',
+  },
 
 });
 
-function getRandomDate() {
-  const date = new Date();
-  const year = date.getFullYear();
-  const month = ('0' + (date.getMonth() + 1)).slice(-2);
-  const day = ('0' + date.getDate()).slice(-2);
-  return `${year}-${month}-${day}`;
-}
-
-function getRandomTime() {
-  const date = new Date();
-  const hour = ('0' + date.getHours()).slice(-2);
-  const minute = ('0' + date.getMinutes()).slice(-2);
-  const second = ('0' + date.getSeconds()).slice(-2);
-  return `${hour}:${minute}:${second}`;
-}
