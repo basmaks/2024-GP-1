@@ -1,4 +1,4 @@
-
+![Murshid App](https://github.com/basmaks/2024-GP-1/blob/main/banner.png?raw=true)
 # 2024-GP-1
 # Murshid: An Energy Monitoring, Recommendation, and Safety Alert System
 
