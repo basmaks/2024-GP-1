@@ -1,9 +1,11 @@
+![Murshid App](https://github.com/basmaks/2024-GP-1/blob/main/banner.png?raw=true)
 # 2024-GP-1
 # Murshid: An Energy Monitoring, Recommendation, and Safety Alert System
 
 ## Introduction
 
-Murshid is a mobile application that gives homeowners precise control over their electricity consumption. It displays real-time usage data, offers personalized recommendations, and alerts users to safety issues. The app enables informed decision-making to optimize energy use, reduce costs, and enhance household safety.
+Murshid is a mobile application that gives homeowners precise control over their electricity consumption. It displays real-time usage data, offers personalized recommendations, and alerts users to safety issues. 
+The app enables informed decision-making to optimize energy use, reduce costs, and enhance household safety.
 
 
 ## Technology 
