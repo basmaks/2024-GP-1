@@ -33,6 +33,8 @@ import Kwh_YearlyChart from "../charts/Kwh_YearlyChart";
 import W_YearlyChart from "../charts/W_YearlyChart";
 import Amp_YearlyChart from "../charts/Amp_YearlyChart";
 import Kwh_FilterChart from '../charts/Kwh_FilterChart';
+import Amp_FilterChart from '../charts/Amp_FilterChart';
+import W_FilterChart from '../charts/W_FilterChart';
 
 export default function AnalyticsScreen() {
   const [selectedPeriodIndex, setSelectedPeriodIndex] = useState(4); // 'مباشر' as default
@@ -164,10 +166,10 @@ const renderChartComponent = () => {
             chartComponent = <Kwh_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} />;
             break;
           case "واط":
-            chartComponent = <Text>قاعده اشتغل عليها </Text>;
+            chartComponent = <W_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} />;
             break;
           case "أمبير":
-            chartComponent = <Text>قاعده اشتغل عليها </Text>;
+            chartComponent = <Amp_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} />;
             break;
         }
         break;    
