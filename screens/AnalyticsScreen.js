@@ -12,7 +12,8 @@ import SelectorBar from "../components/SelectorBar";
 import ProgressBar from "../components/CustomProgressBar";
 import Gauge from "../components/Gauge";
 import DateRangePicker from '../components/DateRangePicker'
-
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../config/firebase";
 
 
 // Import chart components
@@ -31,6 +32,7 @@ import Amp_MonthlyChart from "../charts/Amp_MonthlyChart";
 import Kwh_YearlyChart from "../charts/Kwh_YearlyChart";
 import W_YearlyChart from "../charts/W_YearlyChart";
 import Amp_YearlyChart from "../charts/Amp_YearlyChart";
+import Kwh_FilterChart from '../charts/Kwh_FilterChart';
 
 export default function AnalyticsScreen() {
   const [selectedPeriodIndex, setSelectedPeriodIndex] = useState(4); // 'مباشر' as default
@@ -40,9 +42,54 @@ export default function AnalyticsScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false); // State for showing date picker
   const [startDate, setStartDate] = useState(new Date()); // Start date for date range filter
   const [endDate, setEndDate] = useState(new Date()); 
+  const [chartData, setChartData] = useState([]);
 
-  const renderChartComponent = () => {
-    let chartComponent = null; // Default to null if no match
+// Fetching aggregated data from your React Native app
+const fetchDataAndAggregate = async (startDate, endDate) => {
+  setChartData([]); // Reset chart data before fetching new data
+  try {
+      console.log("Fetching data from:", startDate.toISOString(), "to", endDate.toISOString());
+      const response = await fetch('http://127.0.0.1:5001/aggregateData', {
+          method: 'POST',
+          headers: {
+              'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+              startDate: startDate.toISOString(),
+              endDate: endDate.toISOString()
+          }),
+      });
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Received data:", data);
+      if (data.error) {
+          throw new Error(data.error);
+      }
+      setChartData(data); // Update the state with the fetched data
+  } catch (error) {
+      console.error('Failed to fetch aggregated data:', error);
+      setChartData([]); // Set to empty array on error or define error handling
+  }
+};
+
+const handleDateSelection = (start, end) => {
+  setStartDate(start);
+  setEndDate(end);
+  fetchDataAndAggregate(start, end);
+  setShowDatePicker(false); // Hide the picker after date selection
+};
+
+{showDatePicker && (
+  <DateRangePicker
+    onDatesSelected={handleDateSelection}
+    onClose={() => setShowDatePicker(false)} // Hide picker when the close button is pressed
+  />
+)}
+
+const renderChartComponent = () => {
+  let chartComponent = null; // Default to null if no match
   
     // Match the period with the unit for appropriate graph
     switch (periodOptions[selectedPeriodIndex]) {
@@ -111,21 +158,19 @@ export default function AnalyticsScreen() {
             break;
         }
         break;
-        case "مخصص":
+        case "مخصص": 
         switch (unitOptions[selectedUnitIndex]) {
           case "كيلو واط/ساعة":
-            chartComponent = <Kwh_YearlyChart />;
+            chartComponent = <Kwh_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} />;
             break;
           case "واط":
-            chartComponent = <W_YearlyChart />;
+            chartComponent = <Text>قاعده اشتغل عليها </Text>;
             break;
           case "أمبير":
-            chartComponent = <Amp_YearlyChart />;
+            chartComponent = <Text>قاعده اشتغل عليها </Text>;
             break;
         }
-        break;
-      default:
-        chartComponent = <Text>غير متاح</Text>;
+        break;    
     }
   
     return chartComponent;
@@ -231,26 +276,21 @@ export default function AnalyticsScreen() {
 
           />
         </View>
+
+
 {showDatePicker && (
   <View>
     <DateRangePicker
-      startDate={startDate}
-      endDate={endDate}
-      onChangeStartDate={(event, selectedDate) => {
-        setShowDatePicker(false);
-        if (selectedDate) {
-          setStartDate(selectedDate);
-        }
-      }}
-      onChangeEndDate={(event, selectedDate) => {
-        setShowDatePicker(false);
-        if (selectedDate) {
-          setEndDate(selectedDate);
-        }
-      }}
+        onDatesSelected={(start, end) => {
+            setStartDate(start);  
+            setEndDate(end);     
+            fetchDataAndAggregate(start, end);
+        }}
     />
   </View>
-)}
+)} 
+
+
         <View style={{ marginTop: 0,}}>
           <Text style={styles.rightAlignedLabel}>الوحدة</Text>
           <SelectorBar
@@ -423,3 +463,4 @@ goalIntro:{
   marginHorizontal: 20,
 }
 });
+
