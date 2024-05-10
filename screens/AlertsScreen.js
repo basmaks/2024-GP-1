@@ -16,7 +16,7 @@ export default function AlertsScreen() {
 
   const navigation = useNavigation();
   const [hazards, setHazards] = useState([]);
-
+  const [alertTriggered, setAlertTriggered] = useState(false);
   const [dailyUsageExceeded, setDailyUsageExceeded] = useState(false);//2 for hazard01
 
 
@@ -55,6 +55,16 @@ const fetchUserAlerts = async () => {
 };
 
 async function sendPushNotification(expoPushToken) {
+  // Check if the device is iOS
+  const isIOS = Platform.OS === 'ios';
+
+  // If the device is iOS, return without sending the notification
+  if (isIOS) {
+    console.log('Notification not sent. Device is iOS.');
+    return;
+  }
+
+  // If the device is Android, proceed to send the notification
   const message = {
     to: expoPushToken,
     sound: 'default',
@@ -63,16 +73,22 @@ async function sendPushNotification(expoPushToken) {
     data: { someData: 'goes here' },
   };
 
-  await fetch('https://exp.host/--/api/v2/push/send', {
-    method: 'POST',
-    headers: {
-      Accept: 'application/json',
-      'Accept-encoding': 'gzip, deflate',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(message),
-  });
+  try {
+    await fetch('https://exp.host/--/api/v2/push/send', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Accept-encoding': 'gzip, deflate',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(message),
+    });
+    console.log('Notification sent successfully.');
+  } catch (error) {
+    console.error('Error sending notification:', error);
+  }
 }
+
 
     
     fetchUserAlerts();
@@ -81,7 +97,7 @@ async function sendPushNotification(expoPushToken) {
 
     const checkDailyUsage = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/getRecentUsage');
+        const response = await fetch('https://1b84-2-88-140-5.ngrok-free.app/api/getRecentUsage');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -114,7 +130,7 @@ async function sendPushNotification(expoPushToken) {
         if (totalDailyUsage > 29) {
           handleHazard('hazard04');
         }
-        if (totalDailyUsage > 2) {
+        if (totalDailyUsage > 0.000000000007) {
           handleHazard('hazard05');
         }
         if (totalDailyUsage > 67) {
@@ -165,7 +181,8 @@ async function sendPushNotification(expoPushToken) {
       }
     };
 
-    //done condition1
+    
+
 
 
     fetchUserAlerts();
@@ -181,8 +198,13 @@ async function sendPushNotification(expoPushToken) {
     // Clear interval on component unmount for hazard01
     return () => clearInterval(intervalId);
 
-  }, []);
+  }, [alertTriggered]);
   
+  // Function to handle alert trigger
+  const handleAlertTrigger = () => {
+    // Update alertTriggered state to trigger re-render
+    setAlertTriggered(true);
+  };
 
   const renderHazardItem = ({ item }) => (
     <View style={styles.hazardItem}>
@@ -204,18 +226,19 @@ async function sendPushNotification(expoPushToken) {
   return (
     <View style={styles.container}>
       <TopNavBar2 />
+      
 
       <View style={styles.alertsSection}>
 
       <Text style={styles.header}>التنبيهات</Text>
+      
       <FlatList
-  data={hazards}
-  renderItem={renderHazardItem}
-  keyExtractor={(item, index) => index.toString()} // Use index as the key
-/>
-
-
-      </View>
+      style={styles.flatList}
+        data={hazards}
+        renderItem={renderHazardItem}
+        keyExtractor={(item, index) => index.toString()} 
+      />
+    </View>
     </View>
   );
 }
