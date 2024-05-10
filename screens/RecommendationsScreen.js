@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import { Platform, View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
 import { StyleSheet, Image } from "react-native";
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,7 +8,7 @@ import { useNavigation } from '@react-navigation/native';
 import { themeColors } from '../theme';
 import * as Icons from 'react-native-heroicons/outline';
 import { auth} from '../config/firebase'
-import { doc, getDoc,getDocs, setDoc, addDoc, collection } from "firebase/firestore";
+import { doc, getDoc,getDocs, setDoc, addDoc, collection,query,where } from "firebase/firestore";
 import { db } from '../config/firebase';
 import { LineChart } from 'react-native-chart-kit';
 import Kwh_RealTimeChart from '../charts/Kwh_RealTimeChart';//1
@@ -18,7 +18,7 @@ export default function RecommendationsScreen() {
 
   const navigation = useNavigation();
   const [userTips, setUserTips] = useState([]);
-  
+  const [alertTriggered, setAlertTriggered] = useState(false);
   const [dailyUsageExceeded, setDailyUsageExceeded] = useState(false);
 
   useEffect(() => {
@@ -50,6 +50,16 @@ export default function RecommendationsScreen() {
     };
 
     async function sendPushNotification(expoPushToken) {
+      // Check if the device is iOS
+      const isIOS = Platform.OS === 'ios';
+    
+      // If the device is iOS, return without sending the notification
+      if (isIOS) {
+        console.log('Notification not sent. Device is iOS.');
+        return;
+      }
+    
+      // If the device is Android, proceed to send the notification
       const message = {
         to: expoPushToken,
         sound: 'default',
@@ -57,21 +67,27 @@ export default function RecommendationsScreen() {
         body: 'And here is the body!',
         data: { someData: 'goes here' },
       };
-
-      await fetch('https://exp.host/--/api/v2/push/send', {
-        method: 'POST',
-        headers: {
-          Accept: 'application/json',
-          'Accept-encoding': 'gzip, deflate',
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(message),
-      });
+    
+      try {
+        await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: {
+            Accept: 'application/json',
+            'Accept-encoding': 'gzip, deflate',
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(message),
+        });
+        console.log('Notification sent successfully.');
+      } catch (error) {
+        console.error('Error sending notification:', error);
+      }
     }
+    
 
     const checkDailyUsage = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/getRecentUsage');
+        const response = await fetch('https://1b84-2-88-140-5.ngrok-free.app/api/getRecentUsage');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -94,7 +110,7 @@ export default function RecommendationsScreen() {
         if (totalDailyUsage > 5) {
           handleTip('tip01');
         }
-        if (totalDailyUsage > 10) {
+        if (totalDailyUsage > 0.000000000776346206665039) {
           handleTip('tip02');
         }
         if (totalDailyUsage > 20) {
@@ -103,10 +119,10 @@ export default function RecommendationsScreen() {
         if (totalDailyUsage > 29) {
           handleTip('tip04');
         }
-        if (totalDailyUsage > 2) {
+        if (totalDailyUsage > 0.000000000776346206665039) {
           handleTip('tip05');
         }
-        if (totalDailyUsage > 0.0000000776346206665039) {
+        if (totalDailyUsage > 0.000000000776346206665039) {
           handleTip('tip06');
         }
         if (totalDailyUsage > 76) {
@@ -130,6 +146,16 @@ export default function RecommendationsScreen() {
           return;
         }
     
+        const userTipsRef = collection(db, 'userTips', userUid, 'Tips');
+        const existingTipQuery = query(userTipsRef, where('tipId', '==', tipId));
+        const existingTipSnapshot = await getDocs(existingTipQuery);
+        
+        if (!existingTipSnapshot.empty) {
+          console.log('Tip already exists.');
+          return;
+        }
+    
+        // If the tip doesn't exist, proceed to add it
         const userDocRef = doc(db, 'notificationsdb', userUid);
         const userDocSnapshot = await getDoc(userDocRef);
     
@@ -144,10 +170,8 @@ export default function RecommendationsScreen() {
     
         if (expoPushToken) {
           await sendPushNotification(expoPushToken);
-          const userTipsRef = collection(db, 'userTips', userUid, 'Tips');
           await addDoc(userTipsRef, {
             tipId: tipId,
-            title: tipTitle, // Include the title field
           });
           console.log('Tip added successfully.');
         } else {
@@ -157,6 +181,7 @@ export default function RecommendationsScreen() {
         console.error('Error handling tip:', error);
       }
     };
+    
 
     fetchUserTips();
     checkDailyUsage();
@@ -168,25 +193,27 @@ export default function RecommendationsScreen() {
 
     return () => clearInterval(intervalId);
 
-  }, []);
-
+  }, [alertTriggered]);
+  const handleAlertTrigger = () => {
+    // Update alertTriggered state to trigger re-render
+    setAlertTriggered(true);
+  };
   return (
     <View style={styles.container}>
 
       <TopNavBar />
 
       <ScrollView style={{ flex: 1 }}>
-
-      <View style={styles.tipsSection}>
-      <Text style={styles.header}>اقتراحات</Text>
-      {userTips.map(item => (
-  <View key={item.tipId} style={styles.tipItem}>
-    <View style={styles.contentContainer}>
-      <Text style={styles.tipTitle}>{item.title}</Text>
-      <Image source={require('../assets/icons/recommendations.png')} style={[styles.recommendationIcon, { tintColor: 'yellow' }]} />
-    </View>
-  </View>
-))}
+        <View style={styles.tipsSection}>
+          <Text style={styles.header}>اقتراحات</Text>
+          {userTips.map(item => (
+            <View key={item.tipId} style={styles.tipItem}>
+              <View style={styles.contentContainer}>
+                <Text style={styles.tipTitle}>{item.title}</Text>
+                <Image source={require('../assets/icons/recommendations.png')} style={[styles.recommendationIcon, { tintColor: 'yellow' }]} />
+              </View>
+            </View>
+          ))}
 
       </View>
       </ScrollView>
