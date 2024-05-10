@@ -107,28 +107,28 @@ export default function RecommendationsScreen() {
           }
         }
     
-        if (totalDailyUsage > 5) {
+        if (totalDailyUsage > 0.0003) {
           handleTip('tip01');
         }
-        if (totalDailyUsage > 0.000000000776346206665039) {
+        if (totalDailyUsage > 0.00038) {
           handleTip('tip02');
         }
-        if (totalDailyUsage > 20) {
+        if (totalDailyUsage > 0.00039) {
           handleTip('tip03');
         }
-        if (totalDailyUsage > 29) {
+        if (totalDailyUsage > 0.0004355) {
           handleTip('tip04');
         }
-        if (totalDailyUsage > 0.000000000776346206665039) {
+        if (totalDailyUsage > 0.000368) {
           handleTip('tip05');
         }
-        if (totalDailyUsage > 0.000000000776346206665039) {
+        if (totalDailyUsage > 0.0003355) {
           handleTip('tip06');
         }
-        if (totalDailyUsage > 76) {
+        if (totalDailyUsage > 0.0003955) {
           handleTip('tip07');
         }
-          if (totalDailyUsage > 0.000045) {
+          if (totalDailyUsage > 0.0004) {
             handleTip('tip08');
         }
 
