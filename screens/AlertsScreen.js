@@ -16,7 +16,7 @@ export default function AlertsScreen() {
 
   const navigation = useNavigation();
   const [hazards, setHazards] = useState([]);
-  const [alertTriggered, setAlertTriggered] = useState(false);
+
   const [dailyUsageExceeded, setDailyUsageExceeded] = useState(false);//2 for hazard01
 
 
@@ -182,8 +182,12 @@ async function sendPushNotification(expoPushToken) {
     };
 
     
+  // Function to handle alert trigger
+  const handleAlertTrigger = () => {
+    // Update alertTriggered state to trigger re-render
+    setAlertTriggered(true);
+  };
 
-//
     fetchUserAlerts();
     checkDailyUsage(); // Check daily usage when component mounts for condition 1 hazard01
     
@@ -197,13 +201,8 @@ async function sendPushNotification(expoPushToken) {
     // Clear interval on component unmount for hazard01
     return () => clearInterval(intervalId);
 
-  }, [alertTriggered]);
+  }, []);
   
-  // Function to handle alert trigger
-  const handleAlertTrigger = () => {
-    // Update alertTriggered state to trigger re-render
-    setAlertTriggered(true);
-  };
 
   const renderHazardItem = ({ item }) => (
     <View style={styles.hazardItem}>
@@ -225,19 +224,18 @@ async function sendPushNotification(expoPushToken) {
   return (
     <View style={styles.container}>
       <TopNavBar2 />
-      
 
       <View style={styles.alertsSection}>
 
       <Text style={styles.header}>التنبيهات</Text>
-      
       <FlatList
-      style={styles.flatList}
-        data={hazards}
-        renderItem={renderHazardItem}
-        keyExtractor={(item, index) => index.toString()} 
-      />
-    </View>
+  data={hazards}
+  renderItem={renderHazardItem}
+  keyExtractor={(item, index) => index.toString()} // Use index as the key
+/>
+
+
+      </View>
     </View>
   );
 }
@@ -314,4 +312,5 @@ const styles = StyleSheet.create({
   },
 
 });
+
 
