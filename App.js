@@ -128,15 +128,15 @@ useEffect(() => {
 
 // daily notifications
 // Function to fetch a random recommendation tip from Firebase
-const fetchRandomTip = async () => {
+const fetchRandomHazard = async () => {
   try {
-    const recommendationsRef = collection(db, 'recommendations');
-    const querySnapshot = await getDocs(recommendationsRef);
-    const tipDocs = querySnapshot.docs.map(doc => doc.data().tip);
-    const randomTip = tipDocs[Math.floor(Math.random() * tipDocs.length)];
-    return randomTip;
+    const hazardsRef = collection(db, 'hazards');
+    const querySnapshot = await getDocs(hazardsRef);
+    const hazardDocs = querySnapshot.docs.map(doc => doc.data().title);
+    const randomHazard = hazardDocs[Math.floor(Math.random() * hazardDocs.length)];
+    return randomHazard;
   } catch (error) {
-    console.error('Error fetching recommendation tip:', error);
+    console.error('Error fetching hazard :', error);
     return null;
   }
 };
@@ -145,19 +145,19 @@ const fetchRandomTip = async () => {
 const scheduleDailyNotification = async () => {
   try {
     // Fetch a random recommendation tip
-    const randomTip = await fetchRandomTip();
+    const randomHazard = await fetchRandomHazard();
 
-    if (randomTip) {
+    if (randomHazard) {
       // Schedule a local notification to be sent daily with the recommendation tip
-      const notificationId = 'daily-recommendation';
+      const notificationId = 'daily-hazards';
       const content = {
         title: 'Murshid',
-        body: randomTip,
+        body: randomHazard,
       };
 
       // Calculate the trigger time for 9:10 AM
       const triggerTime = new Date();
-      triggerTime.setHours(9, 10, 0); // Set the time to 9:10 AM
+      triggerTime.setHours(9, 16, 0); // Set the time to 9:10 AM
 
       // Schedule the notification to repeat every day at 9:10 AM
       await scheduleNotificationAsync({
@@ -172,7 +172,7 @@ const scheduleDailyNotification = async () => {
 
       console.log('Daily notification scheduled successfully!');
     } else {
-      console.log('No recommendation tip found.');
+      console.log('No hazard title found.');
     }
   } catch (error) {
     console.error('Error scheduling daily notification:', error);
