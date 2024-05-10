@@ -9,7 +9,7 @@ const formatDate = (dateString) => {
   return moment(dateString).format('DD/MM/YYYY'); // Example format
 };
 
-const Watt_FilterChart = ({ chartData, startDate, endDate }) => {
+const W_FilterChart = ({ chartData, startDate, endDate }) => {
   if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
     return (
       <View style={styles.container}>
@@ -92,4 +92,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Watt_FilterChart;
+export default W_FilterChart;
