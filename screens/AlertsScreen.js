@@ -183,8 +183,7 @@ async function sendPushNotification(expoPushToken) {
 
     
 
-
-
+//
     fetchUserAlerts();
     checkDailyUsage(); // Check daily usage when component mounts for condition 1 hazard01
     
