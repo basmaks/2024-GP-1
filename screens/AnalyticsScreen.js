@@ -207,7 +207,7 @@ const renderChartComponent = () => {
         نظرة على إستهلاكك لهذا الشهر:
           </Text>
           <Text style={styles.conDescription2}>
-        الفترة: الأحد, 1 مارس حتى الإثنين 25 مارس 2024
+        الفترة: الأربعاء, 1 مايو حتى الأربعاء 15 مايو 2024
 </Text>
           </View>
  <View style={styles.dataContainer}>
@@ -246,13 +246,13 @@ const renderChartComponent = () => {
             <View style={styles.infoBox}>
             <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
             <Text style={{ fontWeight: 'bold', color: 'white' }}>أعلى</Text> استهلاك للكهرباء كان في يوم <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>الجمعة </Text> 
-            الموافق <Text style={{ color: '#fff', fontSize: 14, fontWeight:'bold'}}>15 مارس، 2024</Text>
+            الموافق <Text style={{ color: '#fff', fontSize: 14, fontWeight:'bold'}}>15 مايو، 2024</Text>
             </Text>
             </View>
             <View style={styles.infoBox}>
             <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
             <Text style={{ fontWeight: 'bold', color: 'white' }}>أقل</Text> استهلاك للكهرباء كان في يوم <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>الأحد </Text> 
-            الموافق <Text style={{ color: '#fff', fontWeight:'bold'}}>3 مارس، 2024</Text>
+            الموافق <Text style={{ color: '#fff', fontWeight:'bold'}}>3 مايو، 2024</Text>
             </Text>
             </View>
           </View>
