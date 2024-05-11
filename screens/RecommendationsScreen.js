@@ -63,8 +63,8 @@ export default function RecommendationsScreen() {
       const message = {
         to: expoPushToken,
         sound: 'default',
-        title: 'Original Title',
-        body: 'And here is the body!',
+        title: 'مرشد',
+        body: tipContent,
         data: { someData: 'goes here' },
       };
     
@@ -154,6 +154,10 @@ export default function RecommendationsScreen() {
           console.log('Tip already exists.');
           return;
         }
+        // Fetch the tip content
+    const tipRef = doc(db, 'recommendations', tipId);
+    const tipDoc = await getDoc(tipRef);
+    const tipContent = tipDoc.data().tip;
     
         // If the tip doesn't exist, proceed to add it
         const userDocRef = doc(db, 'notificationsdb', userUid);
@@ -169,7 +173,7 @@ export default function RecommendationsScreen() {
         const expoPushToken = userData.token_id;
     
         if (expoPushToken) {
-          await sendPushNotification(expoPushToken);
+          await sendPushNotification(expoPushToken, tipContent);
           await addDoc(userTipsRef, {
             tipId: tipId,
           });
