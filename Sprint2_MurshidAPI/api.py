@@ -1,10 +1,7 @@
 #---------------api.py---------------
 
-# 1. Make sure to replace with the actual path to your JSON file.
-
-# 3. Run this in terminal: python3 api.py or python api.py (depends on python version).
-
-# Must download pyemvue library first. Use this command: pip install Flask or pip3 install Flask (depends on python version).
+# 1. Make sure to replace with the actual path to your JSON file instead of "your/service/account/file/path/here.json".
+# 2. Run this in terminal: python3 api.py or python api.py (depends on python version).
 
 # API ENDPOINT: http://127.0.0.1:5000/api/getRecentUsage (IP address may vary based on computer / device)
 
@@ -25,7 +22,7 @@ from firebase_admin import firestore
 from config import EMVUE_EMAIL, EMVUE_PASSWORD
 
 # Replace with the actual path to your JSON file
-service_account_file_path = "/Users/basmaalsulaim/Desktop/GP/FIREBASE_CREDENTIALS/murshid-f076f-firebase-adminsdk-7lhjc-44d33f50b0.json" # REPLACE WITH YOUR OWN PATH
+service_account_file_path = "your/service/account/file/path/here.json" # REPLACE WITH YOUR OWN PATH
 os.environ['FIREBASE_SERVICE_ACCOUNT_FILE'] = service_account_file_path
 
 # Initialize Flask app
