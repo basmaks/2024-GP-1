@@ -1,8 +1,10 @@
 #---------------dailyUsageAggregator.py---------------
 
-# API ENDPOINT: http://127.0.0.1:5001/aggregateData
+# API ENDPOINT: http://127.0.0.1:5001/aggregateData (IP address may vary based on computer / device)
 
-# 1. Navigate to api folder path. 2. python3 dailyUsageAggregator.py
+# 1. Navigate to api folder path. For example: cd /User/Desktop/2024-GP-1/api/dailyUsageAggregator.py
+# 2. Make sure to replace with the actual path to your JSON file instead of "your/service/account/file/path/here.json".
+# 3. Use this command in terminal to run the script: python3 dailyUsageAggregator.py or python dailyUsageAggregator.py (depends on python version).
 
 from flask import Flask, request, jsonify
 import firebase_admin
@@ -11,7 +13,7 @@ from datetime import datetime, timedelta
 import pytz
 
 app = Flask(__name__)
-cred = credentials.Certificate('/Users/basmaalsulaim/Desktop/GP/FIREBASE_CREDENTIALS/murshid-f076f-firebase-adminsdk-7lhjc-44d33f50b0.json')
+cred = credentials.Certificate('your/service/account/file/path/here.json') # REPLACE THIS WITH THE ACTUAL PATH OF THE SERVICE ACCOUNT FILE IN YOUR COMPUTER
 firebase_admin.initialize_app(cred)
 db = firestore.client()
 riyadh_tz = pytz.timezone('Asia/Riyadh')
