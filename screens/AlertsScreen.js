@@ -68,8 +68,8 @@ async function sendPushNotification(expoPushToken) {
   const message = {
     to: expoPushToken,
     sound: 'default',
-    title: 'Original Title',
-    body: 'And here is the body!',
+    title: 'مرشد',
+    body: 'تنبية:'+hazardContent,
     data: { someData: 'goes here' },
   };
 
@@ -164,9 +164,12 @@ async function sendPushNotification(expoPushToken) {
         const userData = userDocSnapshot.data();
         console.log('userData: ', userData);
         const expoPushToken = userData.token_id;
-    
+    // Fetch hazard content
+    const hazardRef = doc(db, 'hazards', hazardId);
+    const hazardDoc = await getDoc(hazardRef);
+    const hazardContent = hazardDoc.data().title;
         if (expoPushToken) {
-          await sendPushNotification(expoPushToken);  // Assuming this function is properly defined elsewhere
+          await sendPushNotification(expoPushToken, hazardContent); // Assuming this function is properly defined elsewhere
           const userAlertsRef = collection(db, 'userAlerts', userUid, 'alerts');
           await addDoc(userAlertsRef, {
             hazardId: hazardId,
@@ -182,11 +185,7 @@ async function sendPushNotification(expoPushToken) {
     };
 
     
-  // Function to handle alert trigger
-  const handleAlertTrigger = () => {
-    // Update alertTriggered state to trigger re-render
-    setAlertTriggered(true);
-  };
+
 
     fetchUserAlerts();
     checkDailyUsage(); // Check daily usage when component mounts for condition 1 hazard01
