@@ -132,7 +132,7 @@ export default function RecommendationsScreen() {
             handleTip('tip08');
         }
 
-        // Add more conditions for other tips as needed...
+        // Add more conditions as needed...
       } catch (error) {
         console.error('Error fetching real-time usage:', error);
       }
@@ -209,7 +209,7 @@ export default function RecommendationsScreen() {
 
       <ScrollView style={{ flex: 1 }}>
         <View style={styles.tipsSection}>
-          <Text style={styles.header}>اقتراحات</Text>
+          <Text style={styles.header}>الاقتراحات</Text>
           {userTips.map(item => (
             <View key={item.tipId} style={styles.tipItem}>
               <View style={styles.contentContainer}>
