@@ -152,7 +152,7 @@ const scheduleDailyNotification = async () => {
       const notificationId = 'daily-hazards';
       const content = {
         title: 'Murshid',
-        body: randomHazard,
+        body:"تنبية:"+ randomHazard,
       };
 
       // Calculate the trigger time for 9:10 AM
@@ -164,7 +164,7 @@ const scheduleDailyNotification = async () => {
         content,
         trigger: {
           hour: 9,
-          minute: 10,
+          minute: 16,
           repeats: true
         },
         identifier: notificationId,
