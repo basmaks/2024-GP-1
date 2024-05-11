@@ -118,25 +118,25 @@ async function sendPushNotification(expoPushToken) {
         }
     
         // Check for each hazard condition
-        if (totalDailyUsage > 5) {
+        if (totalDailyUsage > 0.000556) {
           handleHazard('hazard01');
         }
-        if (totalDailyUsage > 10) {
+        if (totalDailyUsage > 0.0006) {
           handleHazard('hazard02');
         }
-        if (totalDailyUsage > 20) {
+        if (totalDailyUsage > 0.000590) {
           handleHazard('hazard03');
         }
-        if (totalDailyUsage > 29) {
+        if (totalDailyUsage > 0.0005) {
           handleHazard('hazard04');
         }
-        if (totalDailyUsage > 0.000000000007) {
+        if (totalDailyUsage > 0.0007) {
           handleHazard('hazard05');
         }
-        if (totalDailyUsage > 67) {
+        if (totalDailyUsage > 0.00057) {
           handleHazard('hazard06');
         }
-        if (totalDailyUsage > 76) {
+        if (totalDailyUsage > 0.0007) {
           handleHazard('hazard07');
         }
       } catch (error) {
