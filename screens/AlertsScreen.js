@@ -97,7 +97,7 @@ async function sendPushNotification(expoPushToken) {
 
     const checkDailyUsage = async () => {
       try {
-        const response = await fetch('https://1b84-2-88-140-5.ngrok-free.app/api/getRecentUsage');
+        const response = await fetch('http://127.0.0.1:5000/api/getRecentUsage');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
