@@ -74,13 +74,10 @@ def fetch_energy_usage():
         
     return device_usage_data
 
-@app.route('/api/getRecentUsage', methods=['GET'])
-def get_recent_usage():
-    try:
-        device_usage_data = fetch_energy_usage()
-        return jsonify(device_usage_data)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+@app.route('/', methods=['GET'])
+def index():
+    return "Welcome to the API", 200
+
 
 if __name__ == '__main__':
     app.run()
