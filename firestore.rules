@@ -1,0 +1,36 @@
+rules_version = '2';
+
+service cloud.firestore {
+match /databases/{database}/documents {
+// Allow read and write access to the "users" collection
+match /users/{userId} {
+allow read, write: if true; // Allow anyone to read from or write to the "users" collection
+}
+
+// Allow read and write access to the "messages" collection
+match /messages/{messageId} {
+allow read, write: if true; // Allow anyone to read from or write to the "messages" collection
+}
+
+// Define rules for the "notificationsdb" collection
+match /notificationsdb/{userId} {
+allow read, write: if true; // Allow read and write only if the user is authenticated and matches the document ID
+}
+match /recommendations/{document=**} {
+      allow read, write: if true; 
+    }
+ match /userAlerts/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId; // Allow read and write if authenticated and matches document ID
+      match /alerts/{alertId} {
+        allow read, write: if request.auth != null && request.auth.uid == userId; // Allow read and write if authenticated and matches document ID
+      }
+    }   
+match /hazards/{hazardId} {
+allow read: if true;
+}
+// Allow read access to the "electricity_usage" collection
+    match /electricity_usage/{usageId} {
+      allow read, write: if true;  
+    }
+}
+}
