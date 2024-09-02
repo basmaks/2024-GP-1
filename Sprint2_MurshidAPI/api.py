@@ -21,11 +21,11 @@ from firebase_admin import credentials, firestore, initialize_app
 from config import EMVUE_EMAIL, EMVUE_PASSWORD
 
 # Load credentials from environment variable
-cred_json = os.environ.get('FIREBASE_CREDENTIALS')
+cred_json = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 if cred_json:
     cred = credentials.Certificate(json.loads(cred_json))
 else:
-    raise ValueError("No FIREBASE_CREDENTIALS environment variable set")
+    raise ValueError("No GOOGLE_APPLICATION_CREDENTIALS environment variable set")
 
 initialize_app(cred)
 
