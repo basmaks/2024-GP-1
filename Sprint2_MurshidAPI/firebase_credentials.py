@@ -1,18 +1,14 @@
 #---------------firebase_credentials.py---------------
 import os
+import json
 import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import credentials, firestore
 
 # Get the path to the service account JSON file from an environment variable
-SERVICE_ACCOUNT_FILE = os.environ.get('FIREBASE_SERVICE_ACCOUNT_FILE')
-print("FIREBASE_SERVICE_ACCOUNT_FILE value:", SERVICE_ACCOUNT_FILE)
-
-# Initialize Firebase Admin SDK with service account credentials
-if SERVICE_ACCOUNT_FILE:
-    # Initialize Firebase Admin SDK with service account credentials
-    cred = credentials.Certificate(SERVICE_ACCOUNT_FILE)
+cred_json = os.environ.get('FIREBASE_CREDENTIALS')
+if cred_json:
+    cred = credentials.Certificate(json.loads(cred_json))
     firebase_admin.initialize_app(cred)
-    # Firebase Firestore database
     db = firebase_admin.firestore.client()
 else:
     raise ValueError("Service account file path is not provided.")
