@@ -28,6 +28,7 @@ else:
     raise ValueError("No FIREBASE_CREDENTIALS environment variable set")
 
 initialize_app(cred)
+
 db = firestore.client()
 
 # Initialize Flask app

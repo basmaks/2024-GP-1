@@ -4,20 +4,21 @@ from pyemvue.enums import Scale, Unit
 import os
 import json
 import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import credentials, initialize_app
 from firebase_admin import firestore
 from datetime import datetime
 import time
 from config import EMVUE_EMAIL, EMVUE_PASSWORD  
 
-# Initialize Firestore DB
+# Load credentials from environment variable
 cred_json = os.environ.get('FIREBASE_CREDENTIALS')
 if cred_json:
     cred = credentials.Certificate(json.loads(cred_json))
 else:
     raise ValueError("No FIREBASE_CREDENTIALS environment variable set")
 
-firebase_admin.initialize_app(cred)
+initialize_app(cred)
+
 db = firestore.client()
 
 def fetch_energy_usage():
