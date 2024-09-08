@@ -1,60 +1,48 @@
-#---------------background_task.py---------------
-import pyemvue
-from pyemvue.enums import Scale, Unit
 import os
 import json
-import firebase_admin
-from firebase_admin import credentials, initialize_app
-from firebase_admin import firestore
+import pyemvue
+from pyemvue.enums import Scale, Unit
 from datetime import datetime
+import pytz
+import firebase_admin
+from firebase_admin import credentials, firestore
 import time
-from config import EMVUE_EMAIL, EMVUE_PASSWORD  
+from config import EMVUE_EMAIL, EMVUE_PASSWORD
 
-cred_json = os.environ.get('FIREBASE_CREDENTIALS')
+# Load credentials from environment variable
+cred_json = os.environ.get('GOOGLE_APPLICATION_CREDENTIALS')
 if cred_json:
     cred = credentials.Certificate(json.loads(cred_json))
 else:
-    raise ValueError("No FIREBASE_CREDENTIALS environment variable set")
+    raise ValueError("No GOOGLE_APPLICATION_CREDENTIALS environment variable set")
+
+firebase_admin.initialize_app(cred)
 
 db = firestore.client()
 
 def fetch_energy_usage():
-    # Initialize Emporia Energy Vue object
     vue = pyemvue.PyEmVue()
     vue.login(username=EMVUE_EMAIL, password=EMVUE_PASSWORD)
-
-    # Get list of devices
     devices = vue.get_devices()
 
-    # Gather usage data for all devices
     for device in devices:
         usage = vue.get_device_list_usage(deviceGids=[device.device_gid], instant=None, scale=Scale.SECOND.value, unit=Unit.KWH.value)
-        
-        # Prepare usage data for Firestore
-        timestamp = datetime.now()
-        userId = device.device_gid
-        
-        channels_data = {}
-        total_usage_kWh = 0
-        for channel_num, channel in usage[device.device_gid].channels.items():
-            channels_data[channel_num] = channel.usage
-            total_usage_kWh += channel.usage
-        
+        channels_data = usage[device.device_gid].channels
+        total_channels_usage_kWh = sum(channel.usage for channel in channels_data.values())
+
+        timestamp = datetime.now(pytz.timezone('Asia/Riyadh'))
         usage_data = {
-            'userId': userId,
+            'total_channels_usage_kWh': total_channels_usage_kWh,
+            'userId': device.device_gid,
             'timestamp': timestamp,
-            'channels': channels_data,
-            'total_usage_kWh': total_usage_kWh
+            'device_name': usage[device.device_gid].device_name,
+            'channels': {channel_num: {'name': channel.name, 'usage': channel.usage} for channel_num, channel in channels_data.items()},
         }
-        
+
         # Save to Firestore
         db.collection('electricity_usage').add(usage_data)
 
-def run_background_task():
+if __name__ == '__main__':
     while True:
         fetch_energy_usage()
-        # Run the task every second
-        time.sleep(1)
-
-if __name__ == '__main__':
-    run_background_task()
+        time.sleep(1)  # Fetch every second
