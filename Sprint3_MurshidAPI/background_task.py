@@ -1,3 +1,5 @@
+#-----------background_task.py-----------
+
 import os
 import json
 import pyemvue
@@ -12,14 +14,12 @@ import threading
 from config import EMVUE_EMAIL, EMVUE_PASSWORD
 
 # Load credentials from environment variable
-cred_json = os.environ.get('FIREBASE_SERVICE_ACCOUNT_FILE')
+cred_json = os.environ.get('FIREBASE_CREDENTIALS')
 if cred_json:
-    with open(cred_json, 'r') as f:
-        cred = credentials.Certificate(json.load(f))
+    cred = credentials.Certificate(json.loads(cred_json))
+    firebase_admin.initialize_app(cred)
 else:
-    raise ValueError("No FIREBASE_SERVICE_ACCOUNT_FILE environment variable set")
-
-firebase_admin.initialize_app(cred)
+    raise ValueError("Service account JSON is not provided.")
 
 db = firestore.client()
 data_queue = queue.Queue()

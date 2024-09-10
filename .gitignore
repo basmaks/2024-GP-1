@@ -1,5 +1,2 @@
 node_modules
-TEST_FIREBASE_CREDENTIALS/
-TEST_FIREBASE_CREDENTIALS/murshid-gp2-765b5-firebase-adminsdk-aa1fe-5f66b68b8e.json
-FIREBASE CREDENTIALS gp2024 gmail/murshid-gp2-765b5-firebase-adminsdk-aa1fe-98b1ef85bf.jsonTEST_FIREBASE_CREDENTIALS/
-FIREBASE CREDENTIALS gp2024 gmail/
+/TEST_FIREBASE_CREDENTIALS/*.json
