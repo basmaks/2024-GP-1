@@ -13,3 +13,4 @@ if cred_json:
     db = firebase_admin.firestore.client()
 else:
     raise ValueError("Service account JSON is not provided.")
+
