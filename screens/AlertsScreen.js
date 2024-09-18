@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, ScrollView,Platform } from 'react-native';
 import { StyleSheet } from "react-native";
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -54,7 +54,7 @@ const fetchUserAlerts = async () => {
   }
 };
 
-async function sendPushNotification(expoPushToken) {
+async function sendPushNotification(expoPushToken, hazardContent) {
   // Check if the device is iOS
   const isIOS = Platform.OS === 'ios';
 
@@ -97,7 +97,7 @@ async function sendPushNotification(expoPushToken) {
 
     const checkDailyUsage = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/getRecentUsage');
+        const response = await fetch('http://10.0.2.2:5000/api/getRecentUsage');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

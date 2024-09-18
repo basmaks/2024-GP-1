@@ -49,7 +49,7 @@ export default function RecommendationsScreen() {
       }
     };
 
-    async function sendPushNotification(expoPushToken) {
+    async function sendPushNotification(expoPushToken, tipContent) {
       // Check if the device is iOS
       const isIOS = Platform.OS === 'ios';
     
@@ -87,7 +87,7 @@ export default function RecommendationsScreen() {
 
     const checkDailyUsage = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:5000/api/getRecentUsage');
+        const response = await fetch('https://7583-5-163-241-59.ngrok-free.app/api/getRecentUsage');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -110,10 +110,10 @@ export default function RecommendationsScreen() {
         if (totalDailyUsage > 0.0003) {
           handleTip('tip01');
         }
-        if (totalDailyUsage > 0.00038) {
+        if (totalDailyUsage > 0.000000038) {
           handleTip('tip02');
         }
-        if (totalDailyUsage > 0.00039) {
+        if (totalDailyUsage > 0.0039) {
           handleTip('tip03');
         }
         if (totalDailyUsage > 0.0004355) {
@@ -122,17 +122,17 @@ export default function RecommendationsScreen() {
         if (totalDailyUsage > 0.000368) {
           handleTip('tip05');
         }
-        if (totalDailyUsage > 0.0003355) {
+        if (totalDailyUsage > 0.003355) {
           handleTip('tip06');
         }
-        if (totalDailyUsage > 0.0003955) {
+        if (totalDailyUsage > 0.003955) {
           handleTip('tip07');
         }
-          if (totalDailyUsage > 0.0004) {
+          if (totalDailyUsage > 0.00000004) {
             handleTip('tip08');
         }
 
-        // Add more conditions as needed...
+        // Add more conditions for other tips as needed...
       } catch (error) {
         console.error('Error fetching real-time usage:', error);
       }
@@ -209,7 +209,7 @@ export default function RecommendationsScreen() {
 
       <ScrollView style={{ flex: 1 }}>
         <View style={styles.tipsSection}>
-          <Text style={styles.header}>الاقتراحات</Text>
+          <Text style={styles.header}>اقتراحات</Text>
           {userTips.map(item => (
             <View key={item.tipId} style={styles.tipItem}>
               <View style={styles.contentContainer}>

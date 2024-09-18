@@ -131,7 +131,7 @@ export default function SignUpScreen() {
             setBirthdate('');
             setCity('');
             Alert.alert('تسجيل', 'تم إنشاء الحساب بنجاح');
-            navigation.navigate('ConnectScreen');
+            navigation.navigate('Step0');
           }
         } catch (error) {
           console.error('Error creating user:', error.message);
