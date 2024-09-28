@@ -51,9 +51,9 @@ export default function BottomNavBar() {
                             style={styles.logo}
                         />
                     </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.navigate('Recommendations')}>
+            <TouchableOpacity onPress={() => navigation.navigate('Outlets')}>
                 <Image
-                    source={getCurrentRouteName() === 'Recommendations' ? require('../assets/icons/newrecommendations_active.png') : require('../assets/icons/newrecommendations.png')}
+                    source={getCurrentRouteName() === 'Outlets' ? require('../assets/icons/outlets_active.png') : require('../assets/icons/outlets.png')}
                     style={styles.logo}
                 />
             </TouchableOpacity>
