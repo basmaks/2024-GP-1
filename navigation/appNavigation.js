@@ -8,7 +8,7 @@ import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import useAuth from '../hooks/useAuth';
 import SettingsScreen from '../screens/SettingsScreen';
-import RecommendationsScreen from '../screens/RecommendationsScreen';
+import RecommendationsScreen from '../screens/RecommendationsScreen';//not anymore
 import AnalyticsScreen from '../screens/AnalyticsScreen';
 import AlertsScreen from '../screens/AlertsScreen';
 import EditProfileScreen from '../screens/EditProfileScreen';
