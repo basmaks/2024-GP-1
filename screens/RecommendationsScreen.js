@@ -1,3 +1,5 @@
+//basically not in use anymore
+
 import { Platform, View, Text, TouchableOpacity, FlatList, ScrollView } from 'react-native';
 import { StyleSheet, Image } from "react-native";
 import React, { useState, useEffect } from 'react';

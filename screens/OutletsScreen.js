@@ -7,38 +7,29 @@ import BottomNavBar from '../navigation/BottomNavBar';
 import Outlets_GraphChart from '../charts/Outlets_GraphChart'; 
 import Outlets_BarChart from '../charts/Outlets_BarChart'; 
 import { Image } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
 
 export default function OutletsScreen() {
+  const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState('الاستهلاك');
 
-  const renderContent = () => {
-    switch (activeTab) {
-      case 'الاستهلاك':
-        return <Outlets_BarChart />;
-      case 'رسم بياني':
-        return <Outlets_GraphChart />;
-      default:
-        return null;
-    }
-  };
+  
 
   return (
     <View style={{ flex: 1 }}>
       <TopNavBar />
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.tabContainer}>
-          {['رسم بياني', 'الاستهلاك'].map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[styles.tab, activeTab === tab && styles.activeTab]}
-              onPress={() => setActiveTab(tab)}
-            >
-              <Text style={styles.tabText}>{tab}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        {renderContent()}
+
+          <View style={styles.greetingContainer}>
+        <Text style={styles.greetingText}>الاستهلاك حسب المقبس الكهربائي</Text>
+
+      </View>
       
+      <View style={styles.graphContainer}>
+          <Outlets_GraphChart />
+        </View>
+
         <View style={styles.lowerContainer}>
           <View style={styles.infoContainer}>
             <Text style={styles.largeText}>
@@ -97,6 +88,19 @@ const styles = StyleSheet.create({
     scrollContent: {
         textAlign: 'left',
     },
+
+    greetingContainer: {
+      alignItems: 'flex-end', // Align text to the right
+      paddingTop: 20,
+      paddingHorizontal: 20, // Add horizontal padding
+  
+    },
+    greetingText: {
+      fontSize: 20,
+      fontWeight: 'bold',
+      color: '#143638',
+    },
+    
     lowerContainer: {
       flex: 1,
       backgroundColor: '#143638',
@@ -171,5 +175,8 @@ const styles = StyleSheet.create({
       height:22,
       marginRight: 5,
       alignSelf: 'flex-end',
+    },
+    graphContainer: {
+
     }
   });
