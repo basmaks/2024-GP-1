@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const ProgressBar = ({ current, target, style }) => {
+const CustomProgressBar = ({ current, target, style }) => {
   const progress = (current / target) * 100;
 
   return (
@@ -36,4 +36,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProgressBar;
+export default CustomProgressBar;

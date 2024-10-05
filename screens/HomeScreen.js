@@ -116,7 +116,7 @@ export default function HomeScreen() {
           <Text style={styles.chartHeaderText}>
             {getDisplayText(selectedOptionIndex)}
           </Text>
-          {selectedOptionIndex === 4 && <Kwh_RealTimeChart apiUrl="http://127.0.0.1:5000/api/getRecentUsage" />}
+          {selectedOptionIndex === 4 && <Kwh_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" />}
           {selectedOptionIndex === 3 && <Kwh_DailyChart />}
           {selectedOptionIndex === 2 && <Kwh_WeeklyChart />}
           {selectedOptionIndex === 1 && <Kwh_MonthlyChart />}

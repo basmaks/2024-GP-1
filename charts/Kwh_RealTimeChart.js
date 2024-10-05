@@ -21,20 +21,19 @@ const Kwh_RealTimeChart = ({ apiUrl }) => {
         const response = await fetch(apiUrl);
         const json = await response.json();
 
-        if (typeof json !== 'object' || json === null) {
+        if (json.status !== 'success' || !Array.isArray(json.data) || json.data.length === 0) {
           console.error('Unexpected response structure:', json);
-          throw new Error('Data is not an object or is null');
+          throw new Error('Data is not valid');
         }
 
         let totalUsage = 0;
-        for (const deviceId in json) {
-          const device = json[deviceId];
-          if (device && typeof device === 'object' && device.channels) {
-            for (const channelId in device.channels) {
-              const channel = device.channels[channelId];
-              if (channel && typeof channel === 'object' && !isNaN(channel.usage)) {
-                totalUsage += Number(channel.usage);
-              }
+        const device = json.data[0]; // Assuming you're interested in the first device data
+
+        if (device && device.channels) {
+          for (const channelId in device.channels) {
+            const channel = device.channels[channelId];
+            if (channel && typeof channel === 'object' && !isNaN(channel.usage)) {
+              totalUsage += Number(channel.usage);
             }
           }
         }
@@ -63,7 +62,7 @@ const Kwh_RealTimeChart = ({ apiUrl }) => {
         }
 
       } catch (error) {
-        // console.error('Error fetching data:', error);
+        console.error('Error fetching data:', error);
       }
     };
 
@@ -73,7 +72,7 @@ const Kwh_RealTimeChart = ({ apiUrl }) => {
       isMounted = false;
       clearInterval(intervalId);
     };
-  }, []);
+  }, [apiUrl]);
 
   return (
     <ScrollView

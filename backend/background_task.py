@@ -1,26 +1,26 @@
-#-----------background_task.py-----------
-
 import os
 import json
-import pyemvue
+from pyemvue import PyEmVue  # Correct import for PyEmVue
 from pyemvue.enums import Scale, Unit
 from datetime import datetime, timedelta
 import pytz
 import firebase_admin
-from firebase_admin import credentials, firestore
+from firebase_admin import credentials, firestore, initialize_app
 import time
 import queue
 import threading
-from config import EMVUE_EMAIL, EMVUE_PASSWORD
+from config import EMVUE_EMAIL, EMVUE_PASSWORD  # Import credentials from config.py
 from threading import Lock
+from pycognito.exceptions import TokenVerificationException
 
-# Load credentials from environment variable
+# Get Firebase credentials from environment variable
 cred_json = os.environ.get('FIREBASE_CREDENTIALS')
+
 if cred_json:
-    cred = credentials.Certificate(cred_json)
+    cred = credentials.Certificate(cred_json)  # Use the path from the environment variable
     firebase_admin.initialize_app(cred)
 else:
-    raise ValueError("Service account JSON is not provided.")
+    raise ValueError("FIREBASE_CREDENTIALS environment variable is not set.")
 
 db = firestore.client()
 data_queue = queue.Queue()
@@ -31,67 +31,58 @@ previous_usage_data = None  # Store previous valid usage data for averaging
 # Set to keep track of inserted timestamps
 inserted_timestamps = set()
 
+# Function to retry login in case of failure
+def login_with_retry(vue, retries=3, delay=30):
+    for attempt in range(retries):
+        try:
+            vue.login(username=EMVUE_EMAIL, password=EMVUE_PASSWORD)  # Use credentials from config.py
+            print("Login successful!")
+            return
+        except TokenVerificationException as e:
+            print(f"Login attempt {attempt + 1} failed: {e}")
+            if attempt < retries - 1:
+                print(f"Retrying in {delay} seconds...")
+                time.sleep(delay)
+            else:
+                raise Exception("All retry attempts failed")
+
 # Fetch energy usage data and add it to the queue
 def fetch_energy_usage():
     global last_timestamp, previous_usage_data  # Declare last_timestamp and previous_usage_data as global inside the function
 
-    vue = pyemvue.PyEmVue()
-    vue.login(username=EMVUE_EMAIL, password=EMVUE_PASSWORD)
+    vue = PyEmVue()
+    login_with_retry(vue)  # Retry login on failure
+    
+    # Delay after login to allow the token to become valid
+    time.sleep(10)
+    
     devices = vue.get_devices()
 
     while True:
         start_time = time.time()  # Measure fetch duration
-        
+
         for device in devices:
             usage = vue.get_device_list_usage(deviceGids=[device.device_gid], instant=None, scale=Scale.SECOND.value, unit=Unit.KWH.value)
             channels_data = usage[device.device_gid].channels
-            total_channels_usage_kWh = sum(channel.usage for channel in channels_data.values())
+
+            # Handle NoneType by replacing it with 0
+            total_channels_usage_kWh = sum(channel.usage if channel.usage is not None else 0 for channel in channels_data.values())
 
             # Strip off milliseconds and only use seconds
             timestamp = datetime.now(pytz.timezone('Asia/Riyadh')).replace(microsecond=0)
 
             # Lock to avoid race condition
             with lock:
-                # Check if there is a missing second and fill in with averaged data
-                if last_timestamp and (timestamp - last_timestamp).total_seconds() > 1:
-                    missing_time = last_timestamp
-                    while (timestamp - missing_time).total_seconds() > 1:
-                        missing_time = missing_time + timedelta(seconds=1)
-                        if missing_time not in inserted_timestamps:
-                            print(f"Filling missing second at {missing_time}")
+                # Replace negative values or None with average or zero
+                valid_channel_usages = [channel.usage for channel in channels_data.values() if channel.usage is not None and channel.usage >= 0]
 
-                            # Calculate the average of the previous valid usage data
-                            avg_usage_data = previous_usage_data.copy() if previous_usage_data else {
-                                'total_channels_usage_kWh': 0,
-                                'channels': {channel_num: {'name': channel.name, 'usage': 0} for channel_num, channel in channels_data.items()}
-                            }
-
-                            # Fill in missing data with the averaged usage from previous valid data
-                            missing_data = {
-                                'total_channels_usage_kWh': avg_usage_data['total_channels_usage_kWh'],  # Use average
-                                'userId': device.device_gid,
-                                'timestamp': missing_time,
-                                'device_name': usage[device.device_gid].device_name,
-                                'channels': avg_usage_data['channels'],  # Use averaged or previous valid channel usage
-                            }
-
-                            data_queue.put(missing_data)
-                            inserted_timestamps.add(missing_time)
-
-                # Skip duplicate seconds by checking against the inserted timestamps
-                if timestamp in inserted_timestamps:
-                    print(f"Duplicate second {timestamp}, skipping.")
-                    continue
-
-                # Replace negative values with average or zero
-                valid_channel_usages = [channel.usage for channel in channels_data.values() if channel.usage >= 0]
                 if valid_channel_usages:
                     avg_usage = sum(valid_channel_usages) / len(valid_channel_usages)
                 else:
-                    avg_usage = 0  # If all are negative, use 0
+                    avg_usage = 0  # If all are None or negative, use 0
 
                 for channel_num, channel_data in channels_data.items():
-                    if channel_data.usage < 0:
+                    if channel_data.usage is None or channel_data.usage < 0:
                         channels_data[channel_num].usage = avg_usage
 
                 # Update the last_timestamp and save current usage as the previous valid one

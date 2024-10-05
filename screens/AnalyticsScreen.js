@@ -1,20 +1,19 @@
-//AnalyticsScreen.js
+// AnalyticsScreen.js
 
-import React, { useState } from "react"; 
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image} from 'react-native'
+import React, { useState, useEffect } from "react"; 
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image} from 'react-native';
 import * as Icons from "react-native-heroicons/solid";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { signOut } from "firebase/auth";
+import { signOut } from "firebase/auth"; 
 import { auth } from "../config/firebase";
 import TopNavBar from "../navigation/TopNavBar";
 import BottomNavBar from "../navigation/BottomNavBar";
 import SelectorBar from "../components/SelectorBar"; 
-import ProgressBar from "../components/CustomProgressBar";
+import CustomProgressBar from "../components/CustomProgressBar";
 import Gauge from "../components/Gauge";
-import DateRangePicker from '../components/DateRangePicker'
+import DateRangePicker from '../components/DateRangePicker';
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../config/firebase";
-
 
 // Import chart components
 import Kwh_RealTimeChart from "../charts/Kwh_RealTimeChart";
@@ -36,6 +35,8 @@ import Kwh_FilterChart from '../charts/Kwh_FilterChart';
 import Amp_FilterChart from '../charts/Amp_FilterChart';
 import W_FilterChart from '../charts/W_FilterChart';
 
+import GoalComponent from "../components/GoalComponent"; // Import GoalComponent
+
 export default function AnalyticsScreen() {
   const [selectedPeriodIndex, setSelectedPeriodIndex] = useState(4); // 'مباشر' as default
   const [selectedUnitIndex, setSelectedUnitIndex] = useState(2); // 'كيلو واط/ساعة' as default
@@ -46,65 +47,75 @@ export default function AnalyticsScreen() {
   const [endDate, setEndDate] = useState(new Date()); 
   const [chartData, setChartData] = useState([]);
 
-// Fetching aggregated data from your React Native app
-const fetchDataAndAggregate = async (startDate, endDate) => {
-  setChartData([]); // Reset chart data before fetching new data
-  try {
-      console.log("Fetching data from:", startDate.toISOString(), "to", endDate.toISOString());
-      const response = await fetch('http://127.0.0.1:5001/aggregateData', {
-          method: 'POST',
-          headers: {
-              'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-              startDate: startDate.toISOString(),
-              endDate: endDate.toISOString()
-          }),
-      });
-      if (!response.ok) {
-          throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log("Received data:", data);
-      if (data.error) {
-          throw new Error(data.error);
-      }
-      setChartData(data); // Update the state with the fetched data
-  } catch (error) {
-      console.error('Failed to fetch aggregated data:', error);
-      setChartData([]); // Set to empty array on error or define error handling
-  }
-};
+  const [userId, setUserId] = useState(null); // For user ID from Firebase
 
-const handleDateSelection = (start, end) => {
-  setStartDate(start);
-  setEndDate(end);
-  fetchDataAndAggregate(start, end);
-  setShowDatePicker(false); // Hide the picker after date selection
-};
+  // Fetch the current user ID from Firebase
+  useEffect(() => {
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      setUserId(currentUser.uid); // Set the Firebase user ID
+    }
+  }, []);
 
-{showDatePicker && (
-  <DateRangePicker
-    onDatesSelected={handleDateSelection}
-    onClose={() => setShowDatePicker(false)} // Hide picker when the close button is pressed
-  />
-)}
+  // Fetching aggregated data from your React Native app
+  const fetchDataAndAggregate = async (startDate, endDate) => {
+    setChartData([]); // Reset chart data before fetching new data
+    try {
+        console.log("Fetching data from:", startDate.toISOString(), "to", endDate.toISOString());
+        const response = await fetch('http://127.0.0.1:5001/aggregateData', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString()
+            }),
+        });
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("Received data:", data);
+        if (data.error) {
+            throw new Error(data.error);
+        }
+        setChartData(data); // Update the state with the fetched data
+    } catch (error) {
+        console.error('Failed to fetch aggregated data:', error);
+        setChartData([]); // Set to empty array on error or define error handling
+    }
+  };
 
-const renderChartComponent = () => {
-  let chartComponent = null; // Default to null if no match
-  
+  const handleDateSelection = (start, end) => {
+    setStartDate(start);
+    setEndDate(end);
+    fetchDataAndAggregate(start, end);
+    setShowDatePicker(false); // Hide the picker after date selection
+  };
+
+  {showDatePicker && (
+    <DateRangePicker
+      onDatesSelected={handleDateSelection}
+      onClose={() => setShowDatePicker(false)} // Hide picker when the close button is pressed
+    />
+  )}
+
+  const renderChartComponent = () => {
+    let chartComponent = null; // Default to null if no match
+    
     // Match the period with the unit for appropriate graph
     switch (periodOptions[selectedPeriodIndex]) {
       case "مباشر":
         switch (unitOptions[selectedUnitIndex]) {
           case "كيلو واط/ساعة":
-            chartComponent = <Kwh_RealTimeChart apiUrl="http://127.0.0.1:5000/api/getRecentUsage" />;
+            chartComponent = <Kwh_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" />;
             break;
           case "واط":
-            chartComponent = <W_RealTimeChart apiUrl="http://127.0.0.1:5000/api/getRecentUsage" />;
+            chartComponent = <W_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" />;
             break;
           case "أمبير":
-            chartComponent = <Amp_RealTimeChart apiUrl="http://127.0.0.1:5000/api/getRecentUsage" />;
+            chartComponent = <Amp_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" />;
             break;
         }
         break;
@@ -160,7 +171,7 @@ const renderChartComponent = () => {
             break;
         }
         break;
-        case "مخصص": 
+      case "مخصص": 
         switch (unitOptions[selectedUnitIndex]) {
           case "كيلو واط/ساعة":
             chartComponent = <Kwh_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} />;
@@ -174,126 +185,109 @@ const renderChartComponent = () => {
         }
         break;    
     }
-  
+
     return chartComponent;
-  };  
-  
+  };
+
   const fuelLevel = 75;
   return (
     <View style={styles.container}>
       <TopNavBar />
       <ScrollView style={styles.scrollViewStyle}>
-        <View style={styles.goalIntro}>
-        <Image source={require('../assets/icons/editGoal.png')} style={styles.editIcon} />
-        <Text style={styles.goalText}>تابع تقدمك نحو هدفك!</Text>
-        </View>
-      
-      <View style={styles.goalContainer}>
-      <Text style={styles.goalDescription}>
-          هدفك هو تقليل فاتورتك إلى{' '}
-          <Text style={{ fontWeight: 'bold' }}>900 ريال سعودي،</Text>{' '}
-          مما {' '}
-          <Text style={{ fontWeight: 'bold'}}>يوفر 100 ريال سعودي</Text>{' '}
-         مقارنة بفاتورة الشهر الماضي التي بلغت <Text style={{ fontWeight: 'bold' }}>1000</Text> ريال سعودي.
-        </Text>
 
-          <ProgressBar current={500} target={900} style={{ width: 300 }} />
-
-
-        </View>
         <View style={styles.dataContainer2}>
-        <View style={styles.ContainerText}>
-        <Text style={styles.conDescription}>
-        نظرة على إستهلاكك لهذا الشهر:
-          </Text>
-          <Text style={styles.conDescription2}>
-        الفترة: الأربعاء, 1 مايو حتى الأربعاء 15 مايو 2024
-</Text>
+          <View style={styles.ContainerText}>
+            <Text style={styles.conDescription}>نظرة على إستهلاكك لهذا الشهر:</Text>
+            <Text style={styles.conDescription2}>الفترة: الأربعاء, 1 مايو حتى الأربعاء 15 مايو 2024</Text>
           </View>
- <View style={styles.dataContainer}>
-          <View style={styles.infoContainer}>
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}> تقدير الفاتورة</Text>
-              <Text style={styles.largeInfo}>500</Text>
-              <Text style={styles.infoText}>ريال سعودي</Text>
+
+          <View style={styles.dataContainer}>
+            <View style={styles.infoContainer}>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoText}> تقدير الفاتورة</Text>
+                <Text style={styles.largeInfo}>500</Text>
+                <Text style={styles.infoText}>ريال سعودي</Text>
+              </View>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoText}>الاستهلاك </Text>
+                <Image source={require('../assets/icons/meter.png')} style={styles.meterIcon} />
+                <View style={styles.textBelowGauge}>
+                  <Text style={styles.textBelowGaugeText}>منخفض</Text>
+                  <Text style={styles.textBelowGaugeText}>عالي</Text>
+                </View>
+              </View>
             </View>
-            <View style={styles.infoBox}>
-  <Text style={styles.infoText}>الاستهلاك </Text>
-  <Image source={require('../assets/icons/meter.png')} style={styles.meterIcon} />
-  <View style={styles.textBelowGauge}>
-  <Text style={styles.textBelowGaugeText}>منخفض</Text>
-      <Text style={styles.textBelowGaugeText}>عالي</Text>
-    </View>
-</View>
+          </View>
+
+          <View style={styles.dataContainer}>
+            <View style={styles.infoContainer}>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoText}>إستهلاك الشهر</Text>
+                <Text style={styles.largeInfo}>168</Text>
+                <Text style={styles.infoText}>كيلو واط/ساعة</Text>
+              </View>
+              <View style={styles.infoBox}>
+                <Text style={styles.infoText}>إستهلاك اليوم</Text>
+                <Text style={styles.largeInfo}>17</Text>
+                <Text style={styles.infoText}>كيلو واط/ساعة</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.dataContainer}>
+            <View style={styles.infoContainer}>
+              <View style={styles.infoBox}>
+                <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
+                  <Text style={{ fontWeight: 'bold', color: 'white' }}>أعلى</Text> استهلاك للكهرباء كان في يوم <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>الجمعة </Text>
+                  الموافق <Text style={{ color: '#fff', fontSize: 14, fontWeight:'bold'}}>15 مايو، 2024</Text>
+                </Text>
+              </View>
+              <View style={styles.infoBox}>
+                <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
+                  <Text style={{ fontWeight: 'bold', color: 'white' }}>أقل</Text> استهلاك للكهرباء كان في يوم <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>الأحد </Text>
+                  الموافق <Text style={{ color: '#fff', fontWeight:'bold'}}>3 مايو، 2024</Text>
+                </Text>
+              </View>
+            </View>
           </View>
         </View>
-        <View style={styles.dataContainer}>
-          <View style={styles.infoContainer}>
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>إستهلاك الشهر</Text>
-              <Text style={styles.largeInfo}>168</Text>
-              <Text style={styles.infoText}>كيلو واط/ساعة</Text>
-            </View>
-            <View style={styles.infoBox}>
-              <Text style={styles.infoText}>إستهلاك اليوم</Text>
-              <Text style={styles.largeInfo}>17</Text>
-              <Text style={styles.infoText}>كيلو واط/ساعة</Text>
-            </View>
-          </View>
-        </View>
-        <View style={styles.dataContainer}>
-          <View style={styles.infoContainer}>
-            <View style={styles.infoBox}>
-            <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
-            <Text style={{ fontWeight: 'bold', color: 'white' }}>أعلى</Text> استهلاك للكهرباء كان في يوم <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>الجمعة </Text> 
-            الموافق <Text style={{ color: '#fff', fontSize: 14, fontWeight:'bold'}}>15 مايو، 2024</Text>
-            </Text>
-            </View>
-            <View style={styles.infoBox}>
-            <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
-            <Text style={{ fontWeight: 'bold', color: 'white' }}>أقل</Text> استهلاك للكهرباء كان في يوم <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>الأحد </Text> 
-            الموافق <Text style={{ color: '#fff', fontWeight:'bold'}}>3 مايو، 2024</Text>
-            </Text>
-            </View>
-          </View>
-        </View></View>
+
+        {/* GoalComponent */}
+        {userId && <GoalComponent userId={userId} />}
+        
         <View style={styles.ContainerText}>
-        <Text style={styles.conDescription3}>
-        تحليل استهلاك الكهرباء حسب الفترة والوحدة:
-          </Text>
-          </View>
-          <View style={{ marginTop: 20 }}>
+          <Text style={styles.conDescription3}>تحليل استهلاك الكهرباء حسب الفترة والوحدة:</Text>
+        </View>
+
+        <View style={{ marginTop: 20 }}>
           <Text style={styles.rightAlignedLabel}>الفترة</Text>
           <SelectorBar
             options={periodOptions}
             selectedIndex={selectedPeriodIndex}
             onSelect={(index) => {
-            setSelectedPeriodIndex(index);
-            if (periodOptions[index] === "مخصص") {
-              setShowDatePicker(true); // Show date picker when "مخصص" is selected
-            } else {
-              setShowDatePicker(false); // Hide date picker for other options
-            }
-          }}
-
+              setSelectedPeriodIndex(index);
+              if (periodOptions[index] === "مخصص") {
+                setShowDatePicker(true); // Show date picker when "مخصص" is selected
+              } else {
+                setShowDatePicker(false); // Hide date picker for other options
+              }
+            }}
           />
         </View>
 
+        {showDatePicker && (
+          <View>
+            <DateRangePicker
+              onDatesSelected={(start, end) => {
+                setStartDate(start);
+                setEndDate(end);
+                fetchDataAndAggregate(start, end);
+              }}
+            />
+          </View>
+        )}
 
-{showDatePicker && (
-  <View>
-    <DateRangePicker
-        onDatesSelected={(start, end) => {
-            setStartDate(start);  
-            setEndDate(end);     
-            fetchDataAndAggregate(start, end);
-        }}
-    />
-  </View>
-)} 
-
-
-        <View style={{ marginTop: 0,}}>
+        <View style={{ marginTop: 0 }}>
           <Text style={styles.rightAlignedLabel}>الوحدة</Text>
           <SelectorBar
             options={unitOptions}
@@ -301,10 +295,10 @@ const renderChartComponent = () => {
             onSelect={setSelectedUnitIndex}
           />
         </View>
-        
+
         <View style={styles.chartContainer}>
           {renderChartComponent()} 
-        </View >
+        </View>
 
       </ScrollView>
       <BottomNavBar />
@@ -315,7 +309,6 @@ const renderChartComponent = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //backgroundColor: "#ffffff", no need
   },
   rightAlignedLabel: {
     alignSelf: "flex-end",
@@ -326,42 +319,36 @@ const styles = StyleSheet.create({
   },
   dataContainer: {
     paddingBottom: 0,
-
-  },ContainerText:{
-   
-    marginHorizontal:20,
   },
-  conDescription:{
+  ContainerText: {
+    marginHorizontal: 20,
+  },
+  conDescription: {
     fontSize: 16,
     color: '#000',
     marginBottom: 5,
+    marginTop: 10,
     textAlign: 'right',
     fontWeight: '600',
-    
   },
-  conDescription2:{
+  conDescription2: {
     fontSize: 14,
     color: 'gray',
     marginBottom: 10,
     textAlign: 'right',
     fontWeight: '400',
-
   }, 
-  conDescription3:{
+  conDescription3: {
     fontSize: 16,
     color: '#000',
     marginTop: 30,
     textAlign: 'right',
     fontWeight: '600',
-    
   },
-  dataContainer2: {// كله ماله داعي شوي
-    //backgroundColor: 'rgba(192, 192, 192, 0.4)',
-   marginHorizontal: "auto",
+  dataContainer2: {
+    marginHorizontal: "auto",
     borderRadius: 20,
-    //padding: 20,
-   marginTop:10,
-   
+    marginTop: 10,
   },
   safeAreaView: {
     flex: 1,
@@ -370,13 +357,12 @@ const styles = StyleSheet.create({
   infoContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 2,
-    
+    paddingHorizontal: 0,
+    paddingVertical: 5,
   },
   infoBox: {
     flex: 1,
-    padding: 25,
+    padding: 20,
     borderRadius: 20,
     backgroundColor: "#143638",
     margin: 10,
@@ -385,11 +371,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     textAlign: "center",
-  },
-  infoText1:{
-    color: "#fff",
-    fontSize: 16,
-    textAlign: "right",
   },
   largeInfo: {
     color: "#82C7FA",
@@ -403,38 +384,7 @@ const styles = StyleSheet.create({
     paddingTop: 25,
     marginTop: 0,
   },
-  chartHeaderText: {
-    fontSize: 16,
-    textAlign: "center",
-    marginBottom: 10,
-    marginTop: 0,
-  },
-  scrollViewStyle:{
-    
-  },
-  goalText: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#000',
-    marginVertical: 20,
-    textAlign: 'right',
-    //marginHorizontal: 20,
-    color: '#143638', 
-
-  },
-  goalContainer: {
-    backgroundColor: 'rgba(192, 192, 192, 0.4)',
-    marginHorizontal: 20,
-    borderRadius: 20,
-    padding: 20,
-    marginBottom: 20,
-  },
-  goalDescription: {
-    fontSize: 16,
-    color: '#000',
-    marginBottom: 20,
-    textAlign: 'right',
-  },
+  scrollViewStyle: {},
   textBelowGauge: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -445,24 +395,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   meterIcon: {
-    width:70,
-    height:50,
-    alignSelf: 'center'
-  },
-
-  editIcon: {
-    width:30,
-    height:30,
+    width: 70,
+    height: 50,
     alignSelf: 'center',
-    marginLeft:130
-
-
   },
-goalIntro:{
-  flexDirection: 'row', 
-  alignItems: 'center', 
-  justifyContent: 'space-between',
-  marginHorizontal: 20,
-}
 });
-
