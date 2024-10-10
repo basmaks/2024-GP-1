@@ -10,7 +10,7 @@ const formatDate = (dateString) => {
 };
 
 const Kwh_FilterChart = ({ chartData, startDate, endDate }) => {
-  if (!chartData || !Array.isArray(chartData) || chartData.length === 0) {
+  if (!chartData || chartData.length === 0) {
     return (
       <View style={styles.container}>
         <Text style={styles.text}>جاري إحضار البيانات..</Text>
@@ -18,8 +18,8 @@ const Kwh_FilterChart = ({ chartData, startDate, endDate }) => {
     );
   }
 
-  const labels = chartData.map(data => data.date);
-  const values = chartData.map(data => data.usage);
+  const labels = chartData.map(data => data.date);  // Dates for the x-axis
+  const values = chartData.map(data => data.usage);  // Usage for the y-axis
 
   return (
     <View style={styles.container}>
@@ -36,7 +36,6 @@ const Kwh_FilterChart = ({ chartData, startDate, endDate }) => {
         }}
         width={Dimensions.get('window').width - 10}
         height={230}
-        yAxisLabel=""
         yAxisSuffix=" ك.و.س"
         chartConfig={{
           backgroundColor: '#ffffff',

@@ -1,3 +1,5 @@
+# background_task.py 
+
 import os
 import json
 from pyemvue import PyEmVue  # Correct import for PyEmVue
@@ -12,9 +14,10 @@ import threading
 from config import EMVUE_EMAIL, EMVUE_PASSWORD  # Import credentials from config.py
 from threading import Lock
 from pycognito.exceptions import TokenVerificationException
+from requests.exceptions import ReadTimeout
 
 # Get Firebase credentials from environment variable
-cred_json = os.environ.get('FIREBASE_CREDENTIALS')
+cred_json = os.environ.get('FIREBASE_CREDENTIALS') 
 
 if cred_json:
     cred = credentials.Certificate(cred_json)  # Use the path from the environment variable
@@ -31,7 +34,7 @@ previous_usage_data = None  # Store previous valid usage data for averaging
 # Set to keep track of inserted timestamps
 inserted_timestamps = set()
 
-# Function to retry login in case of failure
+# Function to retry login in case of failure 
 def login_with_retry(vue, retries=3, delay=30):
     for attempt in range(retries):
         try:
@@ -45,6 +48,25 @@ def login_with_retry(vue, retries=3, delay=30):
                 time.sleep(delay)
             else:
                 raise Exception("All retry attempts failed")
+            
+# Function to fetch device usage with retry logic
+def fetch_device_usage(vue, device_gid, retries=3, delay=5):
+    for attempt in range(retries):
+        try:
+            # Attempt to fetch usage data
+            usage = vue.get_device_list_usage(
+                deviceGids=[device_gid],
+                instant=None,
+                scale=Scale.SECOND.value,
+                unit=Unit.KWH.value
+            )
+            return usage  # Return usage data if successful
+        except ReadTimeout:
+            print(f"Attempt {attempt + 1} failed due to timeout. Retrying in {delay} seconds...")
+            time.sleep(delay)  # Wait before retrying
+
+    # Raise an error if all retries fail
+    raise Exception("Failed to fetch usage data after multiple retries")
 
 # Fetch energy usage data and add it to the queue
 def fetch_energy_usage():
@@ -144,4 +166,4 @@ if __name__ == '__main__':
     data_thread.start()
 
     # Start the process_queue function to write data every 10 seconds
-    process_queue()
+    process_queue() 

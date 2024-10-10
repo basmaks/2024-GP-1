@@ -3,7 +3,7 @@ import { View, Dimensions, Text, StyleSheet, ActivityIndicator } from 'react-nat
 import { LineChart } from 'react-native-chart-kit';
 import moment from 'moment';
 
-const Kwh_DailyChart = () => {
+const DailyChart = ({ selectedUnit }) => {
   const [tooltip, setTooltip] = useState({ visible: false, xValue: '', yValue: '', x: 0, y: 0 });
   const [chartData, setChartData] = useState(null); // Dynamic data
   const [loading, setLoading] = useState(true);
@@ -11,7 +11,6 @@ const Kwh_DailyChart = () => {
   const screenWidth = Dimensions.get('window').width;
 
   const getTimeForIndex = index => {
-    // Only show certain hours for better readability
     const hour = index % 24;
     const amPm = hour < 12 ? 'ص' : 'م';
     const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
@@ -20,9 +19,9 @@ const Kwh_DailyChart = () => {
 
   const getCurrentDayInArabic = () => {
     const daysInArabic = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-    const currentDayIndex = moment().day(); // Get the current day index (0 = Sunday, 6 = Saturday)
+    const currentDayIndex = moment().day();
     const arabicDay = daysInArabic[currentDayIndex];
-    return `${arabicDay} ${moment().format('DD/MM/YYYY')}`; // Example: "الأربعاء 10/10/2024"
+    return `${arabicDay} ${moment().format('DD/MM/YYYY')}`;
   };
 
   // Fetch data from the backend
@@ -30,7 +29,7 @@ const Kwh_DailyChart = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://127.0.0.1:8000/data/byHour'); // Adjust URL if needed
+        const response = await fetch('http://127.0.0.1:8000/data/byHour'); // Use your endpoint for daily data
         const data = await response.json();
 
         if (!response.ok || !data.hourly_consumption) {
@@ -38,7 +37,9 @@ const Kwh_DailyChart = () => {
         }
 
         const labels = Array.from({ length: 24 }, (_, i) => (i % 6 === 0 ? getTimeForIndex(i) : ''));
-        const datasets = [{ data: data.hourly_consumption.map(val => Math.round(val * 1000) / 1000) }]; // Round to 3 decimals
+        const datasets = [{
+          data: data.hourly_consumption.map(val => convertUnits(val))
+        }];
 
         setChartData({
           labels,
@@ -52,21 +53,32 @@ const Kwh_DailyChart = () => {
     };
 
     fetchData();
-  }, []);
+  }, [selectedUnit]);
+
+  // Convert based on the selected unit
+  const convertUnits = (value) => {
+    switch (selectedUnit) {
+      case "واط":
+        return value * 1000; // kWh to Watt
+      case "أمبير":
+        return value * 4.54; // Example conversion from kWh to Amp (you should replace this with the actual conversion logic)
+      default:
+        return value; // Default is kWh
+    }
+  };
 
   const handleDataPointClick = (data, index) => {
     const value = chartData.datasets[0].data[index];
     if (value !== null) {
       let xPos = data.x - 60;
       let yPos = data.y - 70;
-      
+
       if (xPos < 0) {
         xPos = 10;
       } else if (xPos + 120 > screenWidth) {
         xPos = screenWidth - 130;
       }
 
-      // Always calculate the time for the clicked index, even if it's not shown on the x-axis
       const time = getTimeForIndex(index);
 
       setTooltip({
@@ -91,14 +103,14 @@ const Kwh_DailyChart = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>معدل إستهلاك الكهرباء اليومي (كيلو واط/ساعة)</Text>
+      <Text style={styles.title}>معدل إستهلاك الكهرباء اليومي ({selectedUnit})</Text>
       <Text style={styles.subTitle}>{getCurrentDayInArabic()}</Text>
       {chartData && (
         <LineChart
           data={chartData}
-          width={screenWidth - 40} // Adjust width to fit the screen
+          width={screenWidth - 40}
           height={280}
-          yAxisSuffix=" ك.و.س"
+          yAxisSuffix={` ${selectedUnit === 'كيلو واط/ساعة' ? 'ك.و.س' : selectedUnit === 'واط' ? 'واط' : 'أمبير'}`}
           chartConfig={styles.chartConfig}
           bezier
           onDataPointClick={({ index, value, x, y }) => handleDataPointClick({ value, x, y }, index)}
@@ -107,7 +119,7 @@ const Kwh_DailyChart = () => {
               return (
                 <View style={styles.tooltipStyle(tooltip.x, tooltip.y)}>
                   <Text style={styles.tooltipText}>{`الوقت: ${tooltip.xValue}`}</Text>
-                  <Text style={styles.tooltipText}>{`الاستهلاك: ${tooltip.yValue} ك.و.س`}</Text>
+                  <Text style={styles.tooltipText}>{`الاستهلاك: ${tooltip.yValue} ${selectedUnit}`}</Text>
                 </View>
               );
             }
@@ -138,7 +150,7 @@ const styles = StyleSheet.create({
     backgroundGradientTo: '#f2f2f2',
     fillShadowGradient: '#82c8ff',
     fillShadowGradientOpacity: 0.8,
-    decimalPlaces: 3, // Display three decimal places on Y-axis
+    decimalPlaces: 2, // Adjust decimal places for better readability
     color: (opacity = 1) => `rgba(0, 163, 255, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
     propsForDots: {
@@ -167,4 +179,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default Kwh_DailyChart;
+export default DailyChart;

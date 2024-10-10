@@ -1,7 +1,5 @@
-// AnalyticsScreen.js
-
 import React, { useState, useEffect } from "react"; 
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image} from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
 import * as Icons from "react-native-heroicons/solid";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { signOut } from "firebase/auth"; 
@@ -34,56 +32,106 @@ import Amp_YearlyChart from "../charts/Amp_YearlyChart";
 import Kwh_FilterChart from '../charts/Kwh_FilterChart';
 import Amp_FilterChart from '../charts/Amp_FilterChart';
 import W_FilterChart from '../charts/W_FilterChart';
+import DailyChart from "../charts/DailyChart";
 
 import GoalComponent from "../components/GoalComponent"; // Import GoalComponent
 
 export default function AnalyticsScreen() {
   const [selectedPeriodIndex, setSelectedPeriodIndex] = useState(4); // 'مباشر' as default
   const [selectedUnitIndex, setSelectedUnitIndex] = useState(2); // 'كيلو واط/ساعة' as default
-  const periodOptions = ["مخصص","سنة", "شهر", "أسبوع", "يوم", "مباشر"];
+  const periodOptions = ["مخصص", "سنة", "شهر", "أسبوع", "يوم", "مباشر"];
   const unitOptions = ["أمبير", "واط", "كيلو واط/ساعة"];
   const [showDatePicker, setShowDatePicker] = useState(false); // State for showing date picker
   const [startDate, setStartDate] = useState(new Date()); // Start date for date range filter
   const [endDate, setEndDate] = useState(new Date()); 
   const [chartData, setChartData] = useState([]);
+  const [monthlyConsumption, setMonthlyConsumption] = useState(0); // Monthly consumption
+  const [dailyConsumption, setDailyConsumption] = useState(0); // Daily consumption
+  const [classification, setClassification] = useState(""); // Consumption classification (Low, Average, High)
+  const [userId] = useState("318787"); // Static userId for electricity_usage (shared)
+  const [monthlyCost, setMonthlyCost] = useState(0); // Monthly cost
+  const [highestDay, setHighestDay] = useState('');
+  const [lowestDay, setLowestDay] = useState('');
+  const [highestConsumption, setHighestConsumption] = useState(0);
+  const [lowestConsumption, setLowestConsumption] = useState(0);
+  const today = new Date();
+  const firstDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of the current month
+  const secondDate = today;
 
-  const [userId, setUserId] = useState(null); // For user ID from Firebase
-
-  // Fetch the current user ID from Firebase
+  // Fetch monthly and daily consumption when component mounts
   useEffect(() => {
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-      setUserId(currentUser.uid); // Set the Firebase user ID
-    }
+    fetchMonthlyConsumption(userId);
+    fetchDailyConsumption(userId); // Added this for daily consumption
+  }, [userId]);
+
+  useEffect(() => {
+    fetchConsumptionRange();
   }, []);
 
-  // Fetching aggregated data from your React Native app
   const fetchDataAndAggregate = async (startDate, endDate) => {
-    setChartData([]); // Reset chart data before fetching new data
     try {
-        console.log("Fetching data from:", startDate.toISOString(), "to", endDate.toISOString());
-        const response = await fetch('http://127.0.0.1:5001/aggregateData', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                startDate: startDate.toISOString(),
-                endDate: endDate.toISOString()
-            }),
-        });
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log("Received data:", data);
-        if (data.error) {
-            throw new Error(data.error);
-        }
-        setChartData(data); // Update the state with the fetched data
+      const response = await fetch('http://127.0.0.1:8000/aggregateData', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          startDate: startDate.toISOString(),
+          endDate: endDate.toISOString(),
+        }),
+      });
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+  
+      const data = await response.json();
+      setChartData(data.data); // Update your state with the received data
     } catch (error) {
-        console.error('Failed to fetch aggregated data:', error);
-        setChartData([]); // Set to empty array on error or define error handling
+      console.error('Failed to fetch aggregated data:', error);
+    }
+  };
+  
+
+
+// Fetch monthly consumption and cost
+const fetchMonthlyConsumption = async (sharedUserId) => {
+  try {
+    const currentMonth = new Date().toISOString().slice(0, 7); // Format: YYYY-MM
+    const response = await fetch(`http://127.0.0.1:8000/data/byMonth?user_id=${sharedUserId}&month=${currentMonth}`);
+    const data = await response.json();
+    setMonthlyConsumption(data.total_monthly_consumption_kWh);
+    setClassification(data.classification); // Store Low/Average/High classification
+    setMonthlyCost(data.total_cost_sar); // Store the calculated cost
+  } catch (error) {
+    console.error('Error fetching monthly consumption:', error);
+  }
+};
+
+  // Fetch daily consumption
+  const fetchDailyConsumption = async (sharedUserId) => {
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/data/byDay?user_id=${sharedUserId}`);
+      const data = await response.json();
+      setDailyConsumption(data.total_daily_consumption_kWh);
+    } catch (error) {
+      console.error('Error fetching daily consumption:', error);
+    }
+  };
+
+  // Fetch highest and lowest consumption data
+  const fetchConsumptionRange = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/data/consumption_range');
+      const data = await response.json();
+
+      // Update state with values from the API response
+      setHighestDay(data.highest_day);  // Arabic-formatted day and date
+      setLowestDay(data.lowest_day);    // Arabic-formatted day and date
+      setHighestConsumption(data.highest_consumption_kWh);  // Already rounded by backend
+      setLowestConsumption(data.lowest_consumption_kWh);    // Already rounded by backend
+    } catch (error) {
+      console.error('Error fetching consumption range:', error);
     }
   };
 
@@ -94,126 +142,86 @@ export default function AnalyticsScreen() {
     setShowDatePicker(false); // Hide the picker after date selection
   };
 
-  {showDatePicker && (
-    <DateRangePicker
-      onDatesSelected={handleDateSelection}
-      onClose={() => setShowDatePicker(false)} // Hide picker when the close button is pressed
-    />
-  )}
-
   const renderChartComponent = () => {
     let chartComponent = null; // Default to null if no match
-    
+
     // Match the period with the unit for appropriate graph
     switch (periodOptions[selectedPeriodIndex]) {
       case "مباشر":
-        switch (unitOptions[selectedUnitIndex]) {
-          case "كيلو واط/ساعة":
-            chartComponent = <Kwh_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" />;
-            break;
-          case "واط":
-            chartComponent = <W_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" />;
-            break;
-          case "أمبير":
-            chartComponent = <Amp_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" />;
-            break;
-        }
+        chartComponent = (
+          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" /> :
+          unitOptions[selectedUnitIndex] === "واط" ? <W_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" /> :
+          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" /> : null
+        );
         break;
       case "يوم":
-        switch (unitOptions[selectedUnitIndex]) {
-          case "كيلو واط/ساعة":
-            chartComponent = <Kwh_DailyChart />;
-            break;
-          case "واط":
-            chartComponent = <W_DailyChart />;
-            break;
-          case "أمبير":
-            chartComponent = <Amp_DailyChart />;
-            break;
-        }
+        chartComponent = (
+          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <DailyChart apiUrl="http://127.0.0.1:8000/data/byHour" /> :
+          unitOptions[selectedUnitIndex] === "واط" ? <DailyChart apiUrl="http://127.0.0.1:8000/data/byHour" /> :
+          unitOptions[selectedUnitIndex] === "أمبير" ? <DailyChart apiUrl="http://127.0.0.1:8000/data/byHour" /> : null
+        );
         break;
       case "أسبوع":
-        switch (unitOptions[selectedUnitIndex]) {
-          case "كيلو واط/ساعة":
-            chartComponent = <Kwh_WeeklyChart />;
-            break;
-          case "واط":
-            chartComponent = <W_WeeklyChart />;
-            break;
-          case "أمبير":
-            chartComponent = <Amp_WeeklyChart />;
-            break;
-        }
+        chartComponent = (
+          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_WeeklyChart /> :
+          unitOptions[selectedUnitIndex] === "واط" ? <W_WeeklyChart /> :
+          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_WeeklyChart /> : null
+        );
         break;
       case "شهر":
-        switch (unitOptions[selectedUnitIndex]) {
-          case "كيلو واط/ساعة":
-            chartComponent = <Kwh_MonthlyChart />;
-            break;
-          case "واط":
-            chartComponent = <W_MonthlyChart />;
-            break;
-          case "أمبير":
-            chartComponent = <Amp_MonthlyChart />;
-            break;
-        }
+        chartComponent = (
+          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_MonthlyChart /> :
+          unitOptions[selectedUnitIndex] === "واط" ? <W_MonthlyChart /> :
+          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_MonthlyChart /> : null
+        );
         break;
       case "سنة":
-        switch (unitOptions[selectedUnitIndex]) {
-          case "كيلو واط/ساعة":
-            chartComponent = <Kwh_YearlyChart />;
-            break;
-          case "واط":
-            chartComponent = <W_YearlyChart />;
-            break;
-          case "أمبير":
-            chartComponent = <Amp_YearlyChart />;
-            break;
-        }
+        chartComponent = (
+          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_YearlyChart /> :
+          unitOptions[selectedUnitIndex] === "واط" ? <W_YearlyChart /> :
+          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_YearlyChart /> : null
+        );
         break;
       case "مخصص": 
-        switch (unitOptions[selectedUnitIndex]) {
-          case "كيلو واط/ساعة":
-            chartComponent = <Kwh_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} />;
-            break;
-          case "واط":
-            chartComponent = <W_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} />;
-            break;
-          case "أمبير":
-            chartComponent = <Amp_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} />;
-            break;
-        }
-        break;    
+        chartComponent = (
+          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} /> :
+          unitOptions[selectedUnitIndex] === "واط" ? <W_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} /> :
+          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} /> : null
+        );
+        break;
     }
 
     return chartComponent;
   };
 
-  const fuelLevel = 75;
-  return (
+  return ( 
     <View style={styles.container}>
       <TopNavBar />
       <ScrollView style={styles.scrollViewStyle}>
-
+      {/* 
         <View style={styles.dataContainer2}>
           <View style={styles.ContainerText}>
             <Text style={styles.conDescription}>نظرة على إستهلاكك لهذا الشهر:</Text>
-            <Text style={styles.conDescription2}>الفترة: الأربعاء, 1 مايو حتى الأربعاء 15 مايو 2024</Text>
+            <Text style={styles.conDescription2}>
+              من {firstDate.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} 
+              {' '}حتى {secondDate.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            </Text>
           </View>
 
           <View style={styles.dataContainer}>
             <View style={styles.infoContainer}>
               <View style={styles.infoBox}>
                 <Text style={styles.infoText}> تقدير الفاتورة</Text>
-                <Text style={styles.largeInfo}>500</Text>
+                <Text style={styles.largeInfo}>{monthlyCost}</Text>
                 <Text style={styles.infoText}>ريال سعودي</Text>
               </View>
               <View style={styles.infoBox}>
-                <Text style={styles.infoText}>الاستهلاك </Text>
+                <Text style={styles.infoText}>الاستهلاك</Text>
                 <Image source={require('../assets/icons/meter.png')} style={styles.meterIcon} />
                 <View style={styles.textBelowGauge}>
-                  <Text style={styles.textBelowGaugeText}>منخفض</Text>
-                  <Text style={styles.textBelowGaugeText}>عالي</Text>
+                  <Text style={styles.textBelowGaugeText}>
+                    {classification === "Low" ? "منخفض" : classification === "Average" ? "متوسط" : "مرتفع"}
+                  </Text>
                 </View>
               </View>
             </View>
@@ -223,38 +231,55 @@ export default function AnalyticsScreen() {
             <View style={styles.infoContainer}>
               <View style={styles.infoBox}>
                 <Text style={styles.infoText}>إستهلاك الشهر</Text>
-                <Text style={styles.largeInfo}>168</Text>
+                <Text style={styles.largeInfo}>{monthlyConsumption}</Text>
                 <Text style={styles.infoText}>كيلو واط/ساعة</Text>
               </View>
               <View style={styles.infoBox}>
                 <Text style={styles.infoText}>إستهلاك اليوم</Text>
-                <Text style={styles.largeInfo}>17</Text>
+                <Text style={styles.largeInfo}>{dailyConsumption}</Text>
                 <Text style={styles.infoText}>كيلو واط/ساعة</Text>
               </View>
             </View>
           </View>
 
           <View style={styles.dataContainer}>
-            <View style={styles.infoContainer}>
-              <View style={styles.infoBox}>
-                <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
-                  <Text style={{ fontWeight: 'bold', color: 'white' }}>أعلى</Text> استهلاك للكهرباء كان في يوم <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>الجمعة </Text>
-                  الموافق <Text style={{ color: '#fff', fontSize: 14, fontWeight:'bold'}}>15 مايو، 2024</Text>
-                </Text>
-              </View>
-              <View style={styles.infoBox}>
-                <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
-                  <Text style={{ fontWeight: 'bold', color: 'white' }}>أقل</Text> استهلاك للكهرباء كان في يوم <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>الأحد </Text>
-                  الموافق <Text style={{ color: '#fff', fontWeight:'bold'}}>3 مايو، 2024</Text>
-                </Text>
-              </View>
-            </View>
+          <View style={styles.infoContainer}>
+          <View style={styles.infoBox}>
+            <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
+              <Text style={{ fontWeight: 'bold', color: 'white' }}>أعلى</Text> استهلاك للكهرباء كان في يوم{' '}
+              <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>
+                {highestDay ? highestDay.split(",")[0] : ''}
+              </Text>{' '}
+              الموافق <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>
+                {highestDay ? highestDay.split(",")[1] : ''}
+              </Text>{' '}
+              بمعدل <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>
+                {highestConsumption} كيلو واط/ساعة
+              </Text>
+            </Text>
           </View>
-        </View>
+          <View style={styles.infoBox}>
+            <Text style={{ textAlign: 'right', color: 'white', fontSize: 16 }}>
+              <Text style={{ fontWeight: 'bold', color: 'white' }}>أقل</Text> استهلاك للكهرباء كان في يوم{' '}
+              <Text style={{ fontWeight: 'bold', fontSize: 21, color: '#82C7FA' }}>
+                {lowestDay ? lowestDay.split(",")[0] : ''}
+              </Text>{' '}
+              الموافق <Text style={{ color: '#fff', fontWeight: 'bold' }}>
+                {lowestDay ? lowestDay.split(",")[1] : ''}
+              </Text>{' '}
+              بمعدل <Text style={{ color: '#fff', fontSize: 14, fontWeight: 'bold' }}>
+                {lowestConsumption} كيلو واط/ساعة
+              </Text>
+            </Text>
+          </View>
+      </View> 
 
+</View> 
+*/}
         {/* GoalComponent */}
-        {userId && <GoalComponent userId={userId} />}
-        
+        <View style={styles.dataContainer2}>
+          {userId ? <GoalComponent userId={userId} /> : null}
+        </View>
         <View style={styles.ContainerText}>
           <Text style={styles.conDescription3}>تحليل استهلاك الكهرباء حسب الفترة والوحدة:</Text>
         </View>
@@ -275,17 +300,17 @@ export default function AnalyticsScreen() {
           />
         </View>
 
-        {showDatePicker && (
+        {showDatePicker ? (
           <View>
             <DateRangePicker
-              onDatesSelected={(start, end) => {
-                setStartDate(start);
-                setEndDate(end);
-                fetchDataAndAggregate(start, end);
-              }}
+                onDatesSelected={(start, end) => {
+                    setStartDate(start);
+                    setEndDate(end);
+                    fetchDataAndAggregate(start, end);  // Call to fetch the aggregated data
+                }}
             />
           </View>
-        )}
+        ) : null}
 
         <View style={{ marginTop: 0 }}>
           <Text style={styles.rightAlignedLabel}>الوحدة</Text>
@@ -324,7 +349,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
   },
   conDescription: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#000',
     marginBottom: 5,
     marginTop: 10,
@@ -332,12 +357,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   conDescription2: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'gray',
     marginBottom: 10,
     textAlign: 'right',
     fontWeight: '400',
-  }, 
+  },
   conDescription3: {
     fontSize: 16,
     color: '#000',
@@ -346,7 +371,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   dataContainer2: {
-    marginHorizontal: "auto",
     borderRadius: 20,
     marginTop: 10,
   },
@@ -357,15 +381,19 @@ const styles = StyleSheet.create({
   infoContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 0,
     paddingVertical: 5,
+    paddingHorizontal: 10,
   },
   infoBox: {
     flex: 1,
-    padding: 20,
+    padding: 15,
     borderRadius: 20,
     backgroundColor: "#143638",
     margin: 10,
+    height: 150, // Fixed height to ensure equal size
+    justifyContent: "center", // Center vertically
+    alignItems: "center", // Center horizontally
+    aspectRatio: 1, // Ensures a square box
   },
   infoText: {
     color: "#fff",
@@ -374,7 +402,7 @@ const styles = StyleSheet.create({
   },
   largeInfo: {
     color: "#82C7FA",
-    fontSize: 36,
+    fontSize: 30,
     textAlign: "center",
     fontWeight: '600',
   },

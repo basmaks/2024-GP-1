@@ -1,5 +1,3 @@
-//---------------HomeScreen.js---------------
-
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -17,14 +15,18 @@ import Kwh_WeeklyChart from '../charts/Kwh_WeeklyChart';
 import Kwh_MonthlyChart from '../charts/Kwh_MonthlyChart';
 import Kwh_YearlyChart from '../charts/Kwh_YearlyChart';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { collection, getFirestore, where, getDocs, addDoc, updateDoc,setDoc,doc } from 'firebase/firestore';
+import { collection, getFirestore, where, getDocs, addDoc, updateDoc, setDoc, doc } from 'firebase/firestore';
 
 export default function HomeScreen() {
   const navigation = useNavigation();
   const [currentDate, setCurrentDate] = useState('');
   const [currentTime, setCurrentTime] = useState('');
-  const [selectedOptionIndex, setSelectedOptionIndex] = useState(4); //default selector bar choice is مباشر
+  const [dailyConsumption, setDailyConsumption] = useState(0); // State for daily consumption
+  const [dailyCost, setDailyCost] = useState(0); // State for daily cost
+  const [selectedOptionIndex, setSelectedOptionIndex] = useState(4); // Default selector bar choice is مباشر
   const options = ['سنة', 'شهر', 'أسبوع', 'يوم', 'مباشر'];
+
+  // Mapping for selector display
   const displayTextMapping = {
     0: 'معدل استهلاك الكهرباء لسنة 2024\n(كيلو واط/ساعة)',
     1: 'معدل استهلاك الكهرباء لشهر مايو 2024\n(كيلو واط/ساعة)',
@@ -32,16 +34,29 @@ export default function HomeScreen() {
     3: ` معدل استهلاك الكهرباء يوم الأربعاء 15/5/2024 \n (كيلو واط/ساعة)`,
     4: 'معدل استهلاك الكهرباء المباشر\n(كيلو واط/ساعة)'
   };
-  //     2: 'معدل استهلاك الكهرباء الأسبوعي (كيلو واط/ساعة) \n من الأحد 24/3/2024 إلى السبت 30/3/2024',
 
-  // Displays a chart header based on the choice chosen from the selector bar
   const getDisplayText = (index) => displayTextMapping[index];
+
+  const fetchDailyConsumptionAndCost = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/data/byDay');
+      const data = await response.json();
+  
+      if (data.total_daily_consumption_kWh !== undefined && data.daily_cost_sar !== undefined) {
+        setDailyConsumption(data.total_daily_consumption_kWh);
+        setDailyCost(data.daily_cost_sar); // Use the cost returned from the API
+      }
+    } catch (error) {
+      console.error('Error fetching daily consumption and cost:', error);
+    }
+  };
+  
 
   const saveToken = async () => {
     let user = auth.currentUser;
     if (!user) {
-        console.error('No authenticated user found!');
-        return;
+      console.error('No authenticated user found!');
+      return;
     }
     let token = await AsyncStorage.getItem('token');
     const userDocRef = doc(db, 'notificationsdb', user.uid); // Create a reference to the specific document for the user
@@ -59,7 +74,9 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    saveToken()
+    saveToken();
+    fetchDailyConsumptionAndCost(); // Fetch daily consumption and cost when component mounts
+
     const updateDateAndTime = () => {
       const now = new Date();
       const daysOfWeek = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
@@ -95,12 +112,12 @@ export default function HomeScreen() {
           <View style={styles.infoContainer}>
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>التكلفة</Text>
-              <Text style={styles.largeInfo}>1.15</Text>
+              <Text style={styles.largeInfo}>{dailyCost}</Text>
               <Text style={styles.infoText}>ريال سعودي</Text>
             </View>
             <View style={styles.infoBox}>
               <Text style={styles.infoText}>اليوم</Text>
-              <Text style={styles.largeInfo}>22</Text>
+              <Text style={styles.largeInfo}>{dailyConsumption}</Text>
               <Text style={styles.infoText}>كيلو واط / ساعة</Text>
             </View>
           </View>
@@ -123,41 +140,29 @@ export default function HomeScreen() {
           {selectedOptionIndex === 0 && <Kwh_YearlyChart />}
         </View>
         <View style={styles.outletsBox}>
-            <TouchableOpacity onPress={() => navigation.navigate('Outlets')}>
-              <Text style={styles.outletsText}>متابعة استهلاك المقابس الكهربائية</Text>
-            </TouchableOpacity>
+          <TouchableOpacity onPress={() => navigation.navigate('Outlets')}>
+            <Text style={styles.outletsText}>متابعة استهلاك المقابس الكهربائية</Text>
+          </TouchableOpacity>
         </View>
-        
       </ScrollView>
       <BottomNavBar />
     </View>
   );
-
 }
 
 const styles = StyleSheet.create({
   upperContainer: {
     backgroundColor: '#143638',
     paddingBottom: 15,
-
   },
   lowerContainer: {
     flex: 1,
-    //backgroundColor: '#FFFFFF',
     paddingHorizontal: 20,
     paddingTop: 25,
     marginTop: 0,
   },
-  container: {
-    flex: 1,
-  },
-  safeAreaView: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
   dateContainer: {
     alignItems: 'center',
-    //paddingHorizontal: 90,
     width: "100%",
     paddingVertical: 10,
     marginTop: 15,

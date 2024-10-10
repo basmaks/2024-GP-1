@@ -1,4 +1,3 @@
-
 # main.py
 
 import os
@@ -17,6 +16,10 @@ from pyemvue import PyEmVue
 from pyemvue.enums import Scale, Unit
 from pycognito.exceptions import TokenVerificationException
 from fastapi.responses import JSONResponse
+from google.cloud import firestore
+from google.oauth2 import service_account
+from google.cloud.firestore_v1._helpers import DatetimeWithNanoseconds
+from dateutil.parser import isoparse
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -25,21 +28,56 @@ app = FastAPI()
 local_tz = pytz.timezone("Asia/Riyadh")
 
 # Get Firebase credentials from the environment variable
-cred_json = os.environ.get('FIREBASE_CREDENTIALS')
+cred_json_path = os.environ.get('FIREBASE_CREDENTIALS')
 
-if cred_json:
-    cred = credentials.Certificate(cred_json)
-    firebase_admin.initialize_app(cred)  # Initialize Firebase only once
+if cred_json_path and os.path.exists(cred_json_path):
+    # Load credentials from the specified JSON file
+    credentials = service_account.Credentials.from_service_account_file(cred_json_path)
+    
+    # Initialize Firestore client with the loaded credentials
+    db = firestore.Client(credentials=credentials)
 else:
-    raise ValueError("FIREBASE_CREDENTIALS environment variable is not set.")
-
-# Get Firestore database reference
-db = firestore.client()
+    raise ValueError("FIREBASE_CREDENTIALS environment variable is not set or the path is invalid.")
 
 lock = threading.Lock()
 inserted_timestamps = set()
 last_timestamp = None
 previous_usage_data = None
+
+# Dictionary for Arabic day and month names
+arabic_days = {
+    'Monday': 'الإثنين',
+    'Tuesday': 'الثلاثاء',
+    'Wednesday': 'الأربعاء',
+    'Thursday': 'الخميس',
+    'Friday': 'الجمعة',
+    'Saturday': 'السبت',
+    'Sunday': 'الأحد'
+}
+
+arabic_months = {
+    'January': 'يناير',
+    'February': 'فبراير',
+    'March': 'مارس',
+    'April': 'أبريل',
+    'May': 'مايو',
+    'June': 'يونيو',
+    'July': 'يوليو',
+    'August': 'أغسطس',
+    'September': 'سبتمبر',
+    'October': 'أكتوبر',
+    'November': 'نوفمبر',
+    'December': 'ديسمبر'
+}
+
+def format_date_in_arabic(date_obj):
+    day_name = date_obj.strftime('%A')
+    day = date_obj.strftime('%d')
+    month_name = date_obj.strftime('%B')
+    year = date_obj.strftime('%Y')
+
+    # Translate to Arabic
+    return f"{arabic_days[day_name]}, {day} {arabic_months[month_name]} {year}"
 
 # ---------------------------------------------
 # Goals Routes
@@ -156,32 +194,7 @@ async def edit_goal(userId: str, goal_request: GoalRequest):
 # Data Routes
 # ---------------------------------------------
 
-@app.get("/data/byDay")
-async def get_daily_total_consumption(user_id: str):
-    specific_date = datetime(2024, 9, 25).date()  # For testing purposes
-    total_consumption = 0
-
-    # Fetch documents for the user from Firestore
-    docs = db.collection('electricity_usage').where('userId', '==', user_id).stream()
-
-    for doc in docs:
-        data = doc.to_dict()
-        timestamp_str = data.get('timestamp')
-        print(f"Document fetched: {data}")  # Log the entire document
-
-        try:
-            timestamp = datetime.strptime(timestamp_str, "%B %d, %Y at %I:%M:%S %p UTC%z")
-            print(f"Parsed timestamp: {timestamp}")
-        except ValueError:
-            print(f"Error parsing timestamp: {timestamp_str}")
-            continue
-
-        if timestamp.date() == specific_date:
-            total_consumption += data.get('total_channels_usage_kWh', 0)
-            print(f"Accumulated total consumption: {total_consumption}")
-
-    return {"total_daily_consumption_kWh": total_consumption}
-
+# By SECOND
 @app.get("/data/bySecond")
 async def get_recent_usage():
     docs = db.collection('electricity_usage').order_by('timestamp', direction=firestore.Query.DESCENDING).limit(1).stream()
@@ -191,6 +204,275 @@ async def get_recent_usage():
         return {"status": "success", "data": usage_data}
     else:
         return {"status": "error", "message": "No data found"}
+    
+# By HOUR
+from google.cloud.firestore_v1._helpers import DatetimeWithNanoseconds
+
+@app.get("/data/byHour")
+async def get_hourly_consumption(date: Optional[str] = None):
+    try:
+        # If no date is provided, default to today's date
+        if date:
+            specific_date = datetime.strptime(date, "%Y-%m-%d").date()
+        else:
+            specific_date = datetime.now(local_tz).date()
+
+        hourly_consumption = [0] * 24  # To store hourly consumption for 24 hours
+
+        # Convert specific date to the start and end times in UTC
+        start_of_day_local = datetime.combine(specific_date, datetime.min.time())
+        end_of_day_local = datetime.combine(specific_date, datetime.max.time())
+
+        # Localize to Riyadh timezone and convert to UTC
+        start_of_day_utc = local_tz.localize(start_of_day_local).astimezone(pytz.utc)
+        end_of_day_utc = local_tz.localize(end_of_day_local).astimezone(pytz.utc)
+
+        # Fetch documents from 'electricity_usage' collection for the specified date
+        docs = db.collection('electricity_usage')\
+            .where('timestamp', '>=', start_of_day_utc)\
+            .where('timestamp', '<=', end_of_day_utc)\
+            .stream()
+
+        for doc in docs:
+            data = doc.to_dict()
+            timestamp = data.get('timestamp')
+
+            if isinstance(timestamp, DatetimeWithNanoseconds):
+                # Convert Firestore timestamp to Python datetime
+                timestamp_dt = timestamp.replace(tzinfo=pytz.UTC)
+                timestamp_local = timestamp_dt.astimezone(local_tz)
+
+                # Check if the document falls on the specific date
+                if timestamp_local.date() == specific_date:
+                    hour = timestamp_local.hour
+                    hourly_consumption[hour] += data.get('total_channels_usage_kWh', 0)
+
+        return {
+            "hourly_consumption": hourly_consumption
+        }
+
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# By DAY
+@app.get("/data/byDay")
+async def get_daily_consumption_and_cost():
+    try:
+        # Get the current date (today) in the local timezone (Riyadh)
+        today = datetime.now(local_tz)
+        
+        # Define the start and end of the current day in the local timezone (Riyadh)
+        start_of_day_local = today.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_day_local = today.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+        # Print the local query range for debugging
+        print(f"Querying from {start_of_day_local} to {end_of_day_local}")
+
+        total_daily_consumption = 0
+
+        # Fetch documents from 'electricity_usage' collection for the current day in the local timezone (Riyadh)
+        docs = db.collection('electricity_usage')\
+            .where('timestamp', '>=', start_of_day_local)\
+            .where('timestamp', '<=', end_of_day_local)\
+            .stream()
+
+        # Log the number of documents fetched
+        for doc in docs:
+            data = doc.to_dict()
+            total_channels_usage = data.get('total_channels_usage_kWh')
+
+            # Sum the available total_channels_usage_kWh for each document
+            if total_channels_usage is not None:
+                total_daily_consumption += total_channels_usage
+
+        print(f"Total daily consumption: {total_daily_consumption}")
+
+        # Calculate the cost based on consumption
+        if total_daily_consumption > 6000:
+            cost = total_daily_consumption * 0.30  # Above 6000 kWh
+        else:
+            cost = total_daily_consumption * 0.18  # Below 6000 kWh
+
+        # Return the total consumption and cost, both rounded to 3 decimal places
+        return {
+            "total_daily_consumption_kWh": round(total_daily_consumption, 3),
+            "daily_cost_sar": round(cost, 2)  # Round to 2 decimal places for currency
+        }
+    
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")  # Log any errors for debugging
+        raise HTTPException(status_code=500, detail=str(e))
+
+# By MONTH 
+@app.get("/data/byMonth")
+async def get_monthly_consumption():
+    try:
+        # Get the current date (today) in the local timezone (Riyadh)
+        today = datetime.now(local_tz)
+        
+        # Define the start of the current month and the end of the current month
+        start_of_month_local = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        last_day_of_month = calendar.monthrange(today.year, today.month)[1]
+        end_of_month_local = today.replace(day=last_day_of_month, hour=23, minute=59, second=59, microsecond=999999)
+
+        # Print the local query range for debugging
+        print(f"Querying from {start_of_month_local} to {end_of_month_local}")
+
+        total_monthly_consumption = 0
+
+        # Fetch documents from 'electricity_usage' collection for the current month in the local timezone (Riyadh)
+        docs = db.collection('electricity_usage')\
+            .where('timestamp', '>=', start_of_month_local)\
+            .where('timestamp', '<=', end_of_month_local)\
+            .stream()
+
+        # Log the number of documents fetched
+        doc_count = 0
+        for doc in docs:
+            doc_count += 1
+            data = doc.to_dict()
+            total_channels_usage = data.get('total_channels_usage_kWh')
+
+            # Log the document's timestamp and usage for debugging
+            # print(f"Document timestamp: {data.get('timestamp')}, total_channels_usage_kWh: {total_channels_usage}")
+
+            # Sum the available total_channels_usage_kWh for each document
+            if total_channels_usage is not None:
+                total_monthly_consumption += total_channels_usage
+
+        print(f"Total documents fetched: {doc_count}")
+        print(f"Total monthly consumption: {total_monthly_consumption}")
+
+        # Classify the monthly consumption using the helper function
+        classification = classify_consumption(total_monthly_consumption)
+
+        if total_monthly_consumption <= 6000:
+            cost = total_monthly_consumption * 0.18  # 0.18 SAR per kWh for consumption <= 6000 kWh
+        else:
+            cost = total_monthly_consumption * 0.30  # 0.30 SAR per kWh for consumption > 6000 kWh
+
+        return {
+            "total_monthly_consumption_kWh": round(total_monthly_consumption, 3),  # Round to 3 decimal places
+            "classification": classification,
+            "total_cost_sar": round(cost, 2)  # Round the cost to 2 decimal places
+        }
+    
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")  # Log any errors for debugging
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Helper function to classify consumption
+def classify_consumption(consumption_kWh):
+    if consumption_kWh <= 2000:  # Example threshold for low
+        return "Low"
+    elif consumption_kWh <= 6000:  # Example threshold for average
+        return "Average"
+    else:
+        return "High"
+
+# Route to get the day with highest and lowest consumption for the month
+@app.get("/data/consumption_range")
+async def get_highest_and_lowest_consumption():
+    try:
+        today = datetime.now(local_tz)
+        start_of_month_local = today.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        last_day_of_month = calendar.monthrange(today.year, today.month)[1]
+        end_of_month_local = today.replace(day=last_day_of_month, hour=23, minute=59, second=59, microsecond=999999)
+
+        # Fetch all documents within the current month
+        docs = db.collection('electricity_usage')\
+            .where('timestamp', '>=', start_of_month_local)\
+            .where('timestamp', '<=', end_of_month_local)\
+            .stream()
+
+        highest_day = None
+        lowest_day = None
+        highest_consumption = 0
+        lowest_consumption = float('inf')
+
+        for doc in docs:
+            data = doc.to_dict()
+            consumption = data.get('total_channels_usage_kWh', 0)
+            timestamp = data.get('timestamp')
+
+            if consumption > highest_consumption:
+                highest_consumption = round(consumption, 3)  # Round to three decimal places
+                highest_day = timestamp
+
+            if consumption < lowest_consumption:
+                lowest_consumption = round(consumption, 3)  # Round to three decimal places
+                lowest_day = timestamp
+
+        # Format highest and lowest days in Arabic manually
+        highest_day_str = format_date_in_arabic(highest_day) if highest_day else None
+        lowest_day_str = format_date_in_arabic(lowest_day) if lowest_day else None
+
+        return {
+            "highest_day": highest_day_str,
+            "highest_consumption_kWh": highest_consumption,
+            "lowest_day": lowest_day_str,
+            "lowest_consumption_kWh": lowest_consumption
+        }
+
+    except Exception as e:
+        print(f"Error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Helper function to parse ISO 8601 dates
+def parse_iso_format(date_str):
+    try:
+        return isoparse(date_str)
+    except Exception as e:
+        raise ValueError(f"Error parsing date: {str(e)}")
+
+# Pydantic model to validate incoming request
+class AggregateDataRequest(BaseModel):
+    startDate: str
+    endDate: str
+
+# By DateRange
+@app.post("/aggregateData")
+async def aggregate_data(request_data: AggregateDataRequest):
+    try:
+        # Parse start and end dates from ISO 8601 format
+        start_date = parse_iso_format(request_data.startDate)
+        end_date = parse_iso_format(request_data.endDate)
+
+        # Print parsed dates for debugging
+        print(f"Start Date: {start_date}, End Date: {end_date}")
+
+        # Query Firestore for the date range
+        docs = db.collection('electricity_usage')\
+                 .where('timestamp', '>=', start_date)\
+                 .where('timestamp', '<=', end_date)\
+                 .stream()
+
+        # Aggregate the data
+        total_usage = 0
+        count = 0
+        for doc in docs:
+            data = doc.to_dict()
+            total_usage += data.get('total_channels_usage_kWh', 0)
+            count += 1
+
+        # If no data is found
+        if count == 0:
+            return {"message": "No data found for the selected date range"}
+
+        # Return the aggregated usage
+        return {
+            "total_usage_kWh": round(total_usage, 3),
+            "data_points": count,
+            "message": "Data aggregated successfully"
+        }
+
+    except ValueError as e:
+        print(f"Error during data aggregation: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        print(f"Error during data aggregation: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
 
 # ---------------------------------------------
 # Background Task to Fetch Energy Usage
