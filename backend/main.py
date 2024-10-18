@@ -549,74 +549,52 @@ def fetch_energy_usage():
 # Outlets Routes
 # ---------------------------------------------
 
-# Local timezone (for Riyadh, UTC+3)
-local_tz = pytz.timezone("Asia/Riyadh")
-
 @app.get("/outlets/byDay")
-async def get_outlet_consumption_by_day(user_id: str, date: Optional[str] = None):
-    # If no date is provided, default to today's date
-    if date:
-        specific_date = datetime.strptime(date, "%Y-%m-%d").date()
-    else:
+async def get_outlet_consumption_by_day():
+    try:
+        # Define the available channels (assuming you know the total set of channels)
+        available_channels = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13']  # Modify as needed
+        
+        # Initialize the dictionary to store daily consumption, default to 0 for each channel
+        outlet_consumption = {channel: 0 for channel in available_channels}
+
+        # Get today's date in the local timezone (Riyadh)
         specific_date = datetime.now(local_tz).date()
 
-    outlet_consumption = {}  # To store daily consumption for each outlet
+        # Fetch documents from Firestore for today
+        docs = db.collection('electricity_usage').stream()
 
-    # Fetch documents for the user from Firestore
-    docs = db.collection('electricity_usage').where('userId', '==', user_id).stream()
+        for doc in docs:
+            data = doc.to_dict()
 
-    print(f"Fetched documents for user {user_id} on date {specific_date}")  # Debugging
+            # Check if 'channels' exist in the document
+            if 'channels' not in data:
+                continue  # Skip this document if channels are missing
 
-    for doc in docs:
-        data = doc.to_dict()
-        print(f"Fetched document: {data}")  # Log full document for inspection
+            # Get the timestamp
+            timestamp = data.get('timestamp')
 
-        # Check if channels exist in the document
-        if 'channels' not in data:
-            print(f"Document missing channels: {data}")
-            continue  # Skip this document if key fields are missing
+            # If the timestamp is already a DatetimeWithNanoseconds object, work with it directly
+            if isinstance(timestamp, DatetimeWithNanoseconds):
+                timestamp = timestamp.replace(tzinfo=pytz.UTC).astimezone(local_tz)
 
-        timestamp_str = data.get('timestamp')
-        print(f"Document timestamp string: {timestamp_str}")  # Debugging
+                # Compare the date portion
+                if timestamp.date() != specific_date:
+                    continue  # Skip if the date doesn't match
 
-        try:
-            # Parse the timestamp
-            timestamp = datetime.strptime(timestamp_str, "%B %d, %Y at %I:%M:%S %p UTC%z")
-            print(f"Parsed timestamp: {timestamp.date()} vs Specific Date: {specific_date}")
+            # Process each channel inside the 'channels' map
+            channels = data.get('channels', {})
+            for channel_id, channel_data in channels.items():
+                usage = channel_data.get('usage', 0)
+                # Accumulate the daily usage for each channel (if the channel is in available channels list)
+                if channel_id in outlet_consumption:
+                    outlet_consumption[channel_id] += usage
 
-            # Compare document date with specific date
-            if timestamp.date() == specific_date:
-                print(f"Document matches date: {specific_date}")
-            else:
-                print(f"Document does NOT match date: {timestamp.date()} != {specific_date}")
-                continue  # Skip if date doesn't match
+        return {"outlet_consumption": outlet_consumption}
 
-        except ValueError:
-            print(f"Error parsing timestamp: {timestamp_str}")
-            continue  # Skip this document if timestamp parsing fails
-
-        # Process the matching documents for the requested date
-        print(f"Processing document for date: {specific_date}")
-
-        # Process each channel inside the 'channels' map
-        channels = data.get('channels', {})
-        print(f"Channels data: {channels}")  # Log channels map for debugging
-
-        for channel_id, channel_data in channels.items():
-            usage = channel_data.get('usage', 0)
-            print(f"Channel {channel_id} has usage: {usage}")  # Debugging the usage per channel
-            # Accumulate the daily usage for each channel
-            outlet_consumption[channel_id] = outlet_consumption.get(channel_id, 0) + usage
-
-    if outlet_consumption:
-        print(f"Outlet consumption data: {outlet_consumption}")  # Debugging
-    else:
-        print("No outlet consumption data found")  # Debugging
-
-    return {
-        "outlet_consumption": outlet_consumption
-    }
-
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+    
 # ---------------------------------------------
 
 # Run background task to fetch energy usage

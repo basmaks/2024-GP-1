@@ -75,7 +75,7 @@ export default function HomeScreen() {
 
   useEffect(() => {
     saveToken();
-    fetchDailyConsumptionAndCost(); // Fetch daily consumption and cost when component mounts
+    fetchDailyConsumptionAndCost(); 
 
     const updateDateAndTime = () => {
       const now = new Date();

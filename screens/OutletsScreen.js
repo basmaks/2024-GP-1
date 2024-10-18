@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { themeColors } from '../theme';
+import { View, Text, ScrollView, StyleSheet, Image } from 'react-native';
 import TopNavBar from '../navigation/TopNavBar';
 import BottomNavBar from '../navigation/BottomNavBar';
 import Outlets_GraphChart from '../charts/Outlets_GraphChart'; 
+import { themeColors } from '../theme';
 
 export default function OutletsScreen() {
   const [totalConsumption, setTotalConsumption] = useState(0);
@@ -11,36 +11,25 @@ export default function OutletsScreen() {
   const [loading, setLoading] = useState(true); // Loading state to handle data fetching
 
   useEffect(() => {
-    const userId = "318787"; // Replace with dynamic user ID if needed
+    const fetchDailyUsage = async () => {
+      try {
+        // Fetch total daily electricity consumption
+        const response = await fetch('http://127.0.0.1:8000/data/byDay');
+        const totalData = await response.json();
+        setTotalConsumption(totalData.total_daily_consumption_kWh);
 
-    // Fetch total daily electricity consumption
-    fetch(`http://127.0.0.1:8000/data/byDay?user_id=${userId}`)
-      .then(response => response.json())
-      .then(data => {
-        console.log("Total consumption data:", data); // Log the response
-        setTotalConsumption(data.total_daily_consumption_kWh);
-      })
-      .catch(error => console.error("Error fetching total consumption:", error));
-
-    // Fetch daily electricity consumption for outlets
-    fetch(`http://127.0.0.1:8000/outlets/byDay?user_id=${userId}`)
-      .then(response => {
-        console.log("Raw response:", response); // Log the raw response
-        if (response.headers.get('content-type')?.includes('application/json')) {
-          return response.json(); // Parse JSON only if content-type is application/json
-        } else {
-          throw new Error('Unexpected response format'); // Handle unexpected response
-        }
-      })
-      .then(data => {
-        console.log("Outlet consumption data:", data); // Log the parsed data
-        setOutletConsumption(data.outlet_consumption || {}); // Use an empty object if data is missing
-        setLoading(false); // Data fetching complete
-      })
-      .catch(error => {
+        // Fetch daily electricity consumption for outlets
+        const outletResponse = await fetch('http://127.0.0.1:8000/outlets/byDay');
+        const outletData = await outletResponse.json();
+        setOutletConsumption(outletData.outlet_consumption || {});
+      } catch (error) {
         console.error("Error fetching outlet consumption:", error);
-        setLoading(false); // Stop loading even if there’s an error
-      });
+      } finally {
+        setLoading(false); // Stop loading regardless of success or failure
+      }
+    };
+
+    fetchDailyUsage();
   }, []);
 
   const renderContent = () => {
@@ -65,15 +54,15 @@ export default function OutletsScreen() {
           <View style={styles.infoContainer}>
             <Text style={styles.largeText}>
               <Image source={require('../assets/icons/bolt2.png')} style={styles.boltIcon} />
-              اليوم <Text style={styles.largeUsage}>{totalConsumption} <Text style={styles.smallUsage}>ك.و.س</Text></Text>
+              اليوم <Text style={styles.largeUsage}>{totalConsumption.toFixed(4)} <Text style={styles.smallUsage}>ك.و.س</Text></Text>
             </Text>
 
-            {/* Ensure outletConsumption is defined and has keys before rendering */}
+            {/* Display the outlet consumption if available */}
             {outletConsumption && Object.keys(outletConsumption).length > 0 ? (
               Object.keys(outletConsumption).map((outlet, index) => (
                 <Text style={styles.infoText} key={index}>
                   <Image source={require('../assets/icons/circuit.png')} style={styles.icon} />
-                  مقبس {outlet}: <Text style={styles.infoText}>{outletConsumption[outlet]} ك.و.س</Text>
+                  <Text style={styles.boldText}>مقبس {outlet}:</Text> {outletConsumption[outlet].toFixed(4)} ك.و.س
                 </Text>
               ))
             ) : (
@@ -89,21 +78,21 @@ export default function OutletsScreen() {
 
 const styles = StyleSheet.create({
   scrollContent: {
-    textAlign: 'left',
+    textAlign: 'right',  // Right-align the content
   },
   lowerContainer: {
     flex: 1,
     backgroundColor: '#143638',
     paddingHorizontal: 20,
     marginTop: 10,
-    textAlign: 'left',
+    textAlign: 'right',  // Right-align the text in the container
   },
   largeText: {
     color: themeColors.lightb,
     fontSize: 26,
     fontWeight: 'bold',
     marginBottom: 10,
-    textAlign: 'left',
+    textAlign: 'right',  // Right-align the large text
     paddingBottom: 15,
   },
   infoText: {
@@ -111,20 +100,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingBottom: 10,
     marginBottom: 10,
-    textAlign: 'left',
+    textAlign: 'right',  // Right-align the outlet info text
   },
   largeUsage: {
     color: themeColors.lightb,
     fontSize: 26,
     marginBottom: 10,
-    textAlign: 'left',
+    textAlign: 'right',  // Right-align the usage text
     paddingBottom: 15,
   },
   smallUsage: {
     color: themeColors.lightb,
     fontSize: 17,
     marginBottom: 10,
-    textAlign: 'left',
+    textAlign: 'right',  // Right-align the small usage text
     paddingBottom: 15,
   },
   boltIcon: {
@@ -138,6 +127,9 @@ const styles = StyleSheet.create({
     height: 22,
     marginRight: 5,
     alignSelf: 'flex-end',
+  },
+  boldText: {
+    fontWeight: 'bold',  // Make "مقبس" bold
   },
   loadingContainer: {
     flex: 1,

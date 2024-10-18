@@ -198,7 +198,6 @@ const fetchMonthlyConsumption = async (sharedUserId) => {
     <View style={styles.container}>
       <TopNavBar />
       <ScrollView style={styles.scrollViewStyle}>
-      {/* 
         <View style={styles.dataContainer2}>
           <View style={styles.ContainerText}>
             <Text style={styles.conDescription}>نظرة على إستهلاكك لهذا الشهر:</Text>
@@ -273,9 +272,8 @@ const fetchMonthlyConsumption = async (sharedUserId) => {
             </Text>
           </View>
       </View> 
-
-</View> 
-*/}
+   </View> 
+</View>
         {/* GoalComponent */}
         <View style={styles.dataContainer2}>
           {userId ? <GoalComponent userId={userId} /> : null}
