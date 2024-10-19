@@ -39,7 +39,7 @@ export default function HomeScreen() {
 
   const fetchDailyConsumptionAndCost = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/data/byDay');
+      const response = await fetch('http://127.0.0.1:8000/api/v1/data/byDay');
       const data = await response.json();
   
       if (data.total_daily_consumption_kWh !== undefined && data.daily_cost_sar !== undefined) {
@@ -133,7 +133,7 @@ export default function HomeScreen() {
           <Text style={styles.chartHeaderText}>
             {getDisplayText(selectedOptionIndex)}
           </Text>
-          {selectedOptionIndex === 4 && <Kwh_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" />}
+          {selectedOptionIndex === 4 && <Kwh_RealTimeChart apiUrl="http://127.0.0.1:8000/api/v1/data/bySecond" />}
           {selectedOptionIndex === 3 && <Kwh_DailyChart />}
           {selectedOptionIndex === 2 && <Kwh_WeeklyChart />}
           {selectedOptionIndex === 1 && <Kwh_MonthlyChart />}

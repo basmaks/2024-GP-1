@@ -30,7 +30,7 @@ const Kwh_DailyChart = () => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://127.0.0.1:8000/data/byHour'); // Adjust URL if needed
+        const response = await fetch('http://127.0.0.1:8000/api/v1/data/byHour'); // Adjust URL if needed
         const data = await response.json();
 
         if (!response.ok || !data.hourly_consumption) {

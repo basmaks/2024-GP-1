@@ -29,7 +29,7 @@ const DailyChart = ({ selectedUnit }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://127.0.0.1:8000/data/byHour'); // Use your endpoint for daily data
+        const response = await fetch('http://127.0.0.1:8000/api/v1/data/byHour'); // Use your endpoint for daily data
         const data = await response.json();
 
         if (!response.ok || !data.hourly_consumption) {

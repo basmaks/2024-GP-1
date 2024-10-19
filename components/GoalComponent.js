@@ -1,3 +1,5 @@
+//GoalComponent.js 
+
 import React, { useState, useEffect } from 'react';
 import { View, TextInput, Button, Text, StyleSheet, Alert, Image, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';  // Import useNavigation
@@ -37,7 +39,7 @@ const GoalComponent = ({ userId }) => {
   const fetchGoal = async () => {
     try {
       console.log("Fetching goal for user:", userId);  // Add this for debugging
-      const response = await fetch(`http://127.0.0.1:8000/goals/${userId}`);
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/goals/${userId}`);
       if (response.ok) {
         const data = await response.json();
         console.log("Goal data fetched:", data);  // Add this for debugging
@@ -76,7 +78,7 @@ const GoalComponent = ({ userId }) => {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/goals', {
+      const response = await fetch('http://127.0.0.1:8000/api/v1/goals/${userId}', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -222,14 +224,14 @@ const GoalComponent = ({ userId }) => {
              <TouchableOpacity style={styles.buttonWithIcon} onPress={handleDeleteGoal}>
                 <Text style={styles.buttonText}>حذف</Text>
                 <Image 
-                  source={require('/Users/basmaalsulaim/Desktop/2024-GP-1/assets/icons/delete.png')} 
+                  source={require('../assets/icons/delete.png')} 
                   style={styles.icon} 
                 />
               </TouchableOpacity>
               <TouchableOpacity style={styles.buttonWithIcon} onPress={applyEditedGoal}>
                 <Text style={styles.buttonText}>تعديل</Text>
                 <Image 
-                  source={require('/Users/basmaalsulaim/Desktop/2024-GP-1/assets/icons/edit.png')} 
+                  source={require('../assets/icons/edit.png')} 
                   style={styles.icon} 
                 />
               </TouchableOpacity>

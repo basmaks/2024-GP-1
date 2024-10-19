@@ -14,12 +14,12 @@ export default function OutletsScreen() {
     const fetchDailyUsage = async () => {
       try {
         // Fetch total daily electricity consumption
-        const response = await fetch('http://127.0.0.1:8000/data/byDay');
+        const response = await fetch('http://127.0.0.1:8000/api/v1/data/byDay');
         const totalData = await response.json();
         setTotalConsumption(totalData.total_daily_consumption_kWh);
 
         // Fetch daily electricity consumption for outlets
-        const outletResponse = await fetch('http://127.0.0.1:8000/outlets/byDay');
+        const outletResponse = await fetch('http://127.0.0.1:8000/api/v1/outlets/byDay');
         const outletData = await outletResponse.json();
         setOutletConsumption(outletData.outlet_consumption || {});
       } catch (error) {

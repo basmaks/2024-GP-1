@@ -70,7 +70,7 @@ export default function AnalyticsScreen() {
 
   const fetchDataAndAggregate = async (startDate, endDate) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/aggregateData', {
+      const response = await fetch('http://127.0.0.1:8000/api/v1/data/aggregateData', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -98,7 +98,7 @@ export default function AnalyticsScreen() {
 const fetchMonthlyConsumption = async (sharedUserId) => {
   try {
     const currentMonth = new Date().toISOString().slice(0, 7); // Format: YYYY-MM
-    const response = await fetch(`http://127.0.0.1:8000/data/byMonth?user_id=${sharedUserId}&month=${currentMonth}`);
+    const response = await fetch(`http://127.0.0.1:8000/api/v1/data/byMonth?user_id=${sharedUserId}&month=${currentMonth}`);
     const data = await response.json();
     setMonthlyConsumption(data.total_monthly_consumption_kWh);
     setClassification(data.classification); // Store Low/Average/High classification
@@ -111,7 +111,7 @@ const fetchMonthlyConsumption = async (sharedUserId) => {
   // Fetch daily consumption
   const fetchDailyConsumption = async (sharedUserId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/data/byDay?user_id=${sharedUserId}`);
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/data/byDay?user_id=${sharedUserId}`);
       const data = await response.json();
       setDailyConsumption(data.total_daily_consumption_kWh);
     } catch (error) {
@@ -122,7 +122,7 @@ const fetchMonthlyConsumption = async (sharedUserId) => {
   // Fetch highest and lowest consumption data
   const fetchConsumptionRange = async () => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/data/consumption_range');
+      const response = await fetch('http://127.0.0.1:8000/api/v1/data/consumption_range');
       const data = await response.json();
 
       // Update state with values from the API response
@@ -149,16 +149,16 @@ const fetchMonthlyConsumption = async (sharedUserId) => {
     switch (periodOptions[selectedPeriodIndex]) {
       case "مباشر":
         chartComponent = (
-          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" /> :
-          unitOptions[selectedUnitIndex] === "واط" ? <W_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" /> :
-          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_RealTimeChart apiUrl="http://127.0.0.1:8000/data/bySecond" /> : null
+          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_RealTimeChart apiUrl="http://127.0.0.1:8000/api/v1/data/bySecond" /> :
+          unitOptions[selectedUnitIndex] === "واط" ? <W_RealTimeChart apiUrl="http://127.0.0.1:8000/api/v1/data/bySecond" /> :
+          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_RealTimeChart apiUrl="http://127.0.0.1:8000/api/v1/data/bySecond" /> : null
         );
         break;
       case "يوم":
         chartComponent = (
-          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <DailyChart apiUrl="http://127.0.0.1:8000/data/byHour" /> :
-          unitOptions[selectedUnitIndex] === "واط" ? <DailyChart apiUrl="http://127.0.0.1:8000/data/byHour" /> :
-          unitOptions[selectedUnitIndex] === "أمبير" ? <DailyChart apiUrl="http://127.0.0.1:8000/data/byHour" /> : null
+          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <DailyChart apiUrl="http://127.0.0.1:8000/api/v1/data/byHour" /> :
+          unitOptions[selectedUnitIndex] === "واط" ? <DailyChart apiUrl="http://127.0.0.1:8000/api/v1/data/byHour" /> :
+          unitOptions[selectedUnitIndex] === "أمبير" ? <DailyChart apiUrl="http://127.0.0.1:8000/api/v1/data/byHour" /> : null
         );
         break;
       case "أسبوع":
