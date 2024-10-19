@@ -139,16 +139,18 @@ export default function HomeScreen() {
           {selectedOptionIndex === 1 && <Kwh_MonthlyChart />}
           {selectedOptionIndex === 0 && <Kwh_YearlyChart />}
         </View>
-        <View style={styles.outletsBox}>
-          <TouchableOpacity onPress={() => navigation.navigate('Outlets')}>
-            <Text style={styles.outletsText}>متابعة استهلاك المقابس الكهربائية</Text>
-          </TouchableOpacity>
-        </View>
+
       </ScrollView>
       <BottomNavBar />
     </View>
   );
 }
+
+    /*<View style={styles.outletsBox}>
+        <TouchableOpacity onPress={() => navigation.navigate('Outlets')}>
+        <Text style={styles.outletsText}>متابعة استهلاك المقابس الكهربائية</Text>
+      </TouchableOpacity>
+    </View>*///was for the outlets button
 
 const styles = StyleSheet.create({
   upperContainer: {
