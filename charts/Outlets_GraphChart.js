@@ -53,7 +53,8 @@ const OutletsChart = () => {
                     bezier
                     style={{
                         marginVertical: 10,
-                        borderRadius: 16
+                        borderRadius: 16,
+                        marginTop:15//new
                     }}
                 />
             ) : (
@@ -71,18 +72,21 @@ const styles = StyleSheet.create({
         flexDirection: 'row-reverse',
         justifyContent: 'flex-start',
         alignItems: 'center',
-        padding: 10,
+        //padding: 10,
         paddingHorizontal: 20,
     },
     header: {
-        fontWeight: 'bold',
+        //fontWeight: 'bold',
         fontSize: 16,
         marginLeft: 10,
+        color: 'black', // Adjust color as needed
+    marginTop: 15,
     }
 });
 
 const pickerSelectStyles = StyleSheet.create({
     inputIOS: {
+        marginTop: 15,
         fontSize: 16,
         paddingVertical: 12,
         paddingHorizontal: 10,
@@ -90,7 +94,7 @@ const pickerSelectStyles = StyleSheet.create({
         borderColor: 'gray',
         borderRadius: 4,
         color: 'black',
-        paddingRight: 30, 
+        //paddingRight: 30, 
         textAlign: 'center',
     },
     inputAndroid: {
