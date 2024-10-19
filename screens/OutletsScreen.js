@@ -52,10 +52,11 @@ export default function OutletsScreen() {
 
         <View style={styles.lowerContainer}>
           <View style={styles.infoContainer}>
-            <Text style={styles.largeText}>
-              <Image source={require('../assets/icons/bolt2.png')} style={styles.boltIcon} />
-              اليوم <Text style={styles.largeUsage}>{totalConsumption.toFixed(4)} <Text style={styles.smallUsage}>ك.و.س</Text></Text>
-            </Text>
+
+          <View style={styles.todayInfo}>
+            <Text style={styles.largeText}>اليوم <Text style={styles.largeUsage}>{totalConsumption.toFixed(4)} <Text style={styles.smallUsage}>ك.و.س</Text></Text></Text>
+            <Image source={require('../assets/icons/bolt2.png')} style={styles.boltIcon} />
+            </View>
 
             {/* Display the outlet consumption if available */}
             {outletConsumption && Object.keys(outletConsumption).length > 0 ? (
@@ -66,7 +67,7 @@ export default function OutletsScreen() {
                 </Text>
               ))
             ) : (
-              <Text style={styles.infoText}>لا يوجد بيانات المتاحة للمقابس</Text>
+              <Text style={styles.infoText}>لا يوجد بيانات متاحة للمقابس</Text>
             )}
           </View>
         </View>
@@ -79,54 +80,58 @@ export default function OutletsScreen() {
 const styles = StyleSheet.create({
   scrollContent: {
     textAlign: 'right',  // Right-align the content
+    
   },
   lowerContainer: {
-    flex: 1,
+    //flex: 1,
     backgroundColor: '#143638',
     paddingHorizontal: 20,
     marginTop: 10,
-    textAlign: 'right',  // Right-align the text in the container
   },
-  largeText: {
+  infoContainer: {  // Add this style
+    justifyContent: 'flex-end', // Align content to the end (right)
+    alignItems: 'flex-end', // Align content to the end (right)
+  },
+
+
+//whats inside the todayInfo div cuz of the bolt icon and many texts
+todayInfo: {
+  marginTop: 5,
+  marginBottom: 30,
+  flexDirection: 'row',
+  justifyContent: 'space-between', // Adjusted justifyContent
+},
+largeText: {
+  color: themeColors.lightb,
+  fontSize: 20,
+  fontWeight: 'bold',
+},
+  largeUsage: {
     color: themeColors.lightb,
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'right',  // Right-align the large text
-    paddingBottom: 15,
+    fontSize: 20,
   },
+  smallUsage: {
+    color: themeColors.lightb,
+    fontSize: 20,
+  },
+  boltIcon: {
+    width: 22,
+    height: 22,
+    alignSelf: 'flex-end',
+  },
+  //end of todayInfo
+
   infoText: {
     color: 'white',
     fontSize: 16,
     paddingBottom: 10,
     marginBottom: 10,
-    textAlign: 'right',  // Right-align the outlet info text
   },
-  largeUsage: {
-    color: themeColors.lightb,
-    fontSize: 26,
-    marginBottom: 10,
-    textAlign: 'right',  // Right-align the usage text
-    paddingBottom: 15,
-  },
-  smallUsage: {
-    color: themeColors.lightb,
-    fontSize: 17,
-    marginBottom: 10,
-    textAlign: 'right',  // Right-align the small usage text
-    paddingBottom: 15,
-  },
-  boltIcon: {
-    width: 35,
-    height: 35,
-    marginRight: 5,
-    alignSelf: 'flex-end',
-  },
+
   icon: {
     width: 20,
     height: 22,
     marginRight: 5,
-    alignSelf: 'flex-end',
   },
   boldText: {
     fontWeight: 'bold',  // Make "مقبس" bold
@@ -140,4 +145,5 @@ const styles = StyleSheet.create({
     fontSize: 20,
     color: 'white',
   },
+
 });
