@@ -1,3 +1,6 @@
+//not used
+///was gonna be in the settings
+
 import { View, Text, TouchableOpacity } from 'react-native'
 import { StyleSheet, Image } from "react-native"
 import React from 'react'
