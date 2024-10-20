@@ -11,6 +11,7 @@ from backend.routers import data, outlets, goals
 from backend.firebase import db
 from backend.utils import format_date_in_arabic
 from backend.utils import arabic_days, arabic_months
+from backend.config import EMVUE_EMAIL, EMVUE_PASSWORD  # Import credentials
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -38,7 +39,7 @@ def fetch_energy_usage():
     from datetime import datetime, timedelta
 
     vue = PyEmVue()
-    vue.login(username=os.environ.get("EMVUE_EMAIL"), password=os.environ.get("EMVUE_PASSWORD"))
+    vue.login(username=EMVUE_EMAIL, password=EMVUE_PASSWORD)  # Use imported credentials
     devices = vue.get_devices()
 
     while True:
