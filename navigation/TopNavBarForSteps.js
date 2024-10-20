@@ -1,4 +1,4 @@
-//navbar for the 4 main screens
+//navbar for دليل التثبيت
 
 import React from 'react';
 import { View, TouchableOpacity, Text, StyleSheet, Image } from 'react-native';
@@ -9,13 +9,10 @@ import { auth } from '../config/firebase'
 import { useNavigation } from '@react-navigation/native';
 
 
-export default function TopNavBar() {
+export default function TopNavBarForSteps() {
 
   const navigation = useNavigation();
 
-    const handlePressAlerts = () => {
-      navigation.navigate('Alerts');
-    };
   
     const handleLogout = async ()=>{
       await signOut(auth);
@@ -25,13 +22,17 @@ export default function TopNavBar() {
       <SafeAreaView style={styles.container}>
         <View style={styles.navBar}>
           
-          <TouchableOpacity onPress={handlePressAlerts} style={styles.alertsContainer}>
-            <Image source={require('../assets/icons/newalerts.png')} style={styles.alertsIcon} />
+          <TouchableOpacity onPress={() => navigation.navigate('Support')} style={styles.support}>
+          <Icons.WrenchScrewdriverIcon size={30} color="white" style={styles.iconStyle} />
           </TouchableOpacity>
           
           <View style={styles.logoContainer}>
             <Image source={require('../assets/images/logobetter.png')} style={styles.logo} />
           </View>
+          
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.goBackContainer}>
+          <Icons.ArrowRightIcon size="30" color="white" style={styles.iconStyle} />
+          </TouchableOpacity>
 
         </View>
       </SafeAreaView>
@@ -70,15 +71,19 @@ export default function TopNavBar() {
       flex: 1,
     },
 
-    alertsContainer: {
+    support: {
       position: 'absolute',
       left: 20,
       bottom: 18,
     },
+ goBackContainer: {
+      position: 'absolute',
+      right: 20,
+      bottom: 18,
+    },
 
-    alertsIcon: {
-      width: 30,
-      height: 35,
+    iconStyle: {
+
     }
 
   });
