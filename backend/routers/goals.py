@@ -50,7 +50,7 @@ class GoalRequest(BaseModel):
     goalAmount: float
    
 # Route to ADD active goal for a user
-@router.post("/goals")
+@router.post("/")
 async def add_goal(goal_request: GoalRequest):
     try:
         if not (1 <= goal_request.goalAmount <= 10000):

@@ -38,11 +38,11 @@ const GoalComponent = ({ userId }) => {
   // Function to fetch the goal when the screen loads
   const fetchGoal = async () => {
     try {
-      console.log("Fetching goal for user:", userId);  // Add this for debugging
+      console.log("Fetching goal for user:", userId);  
       const response = await fetch(`http://127.0.0.1:8000/api/v1/goals/${userId}`);
       if (response.ok) {
         const data = await response.json();
-        console.log("Goal data fetched:", data);  // Add this for debugging
+        console.log("Goal data fetched:", data);  
         setGoalAmount(data.goalAmount.toString());  // Set the goal amount from the fetched data
         setGoalAdded(true);  // Mark that a goal has been added
       } else {
@@ -57,7 +57,7 @@ const GoalComponent = ({ userId }) => {
   useEffect(() => {
     // Fetch the goal initially when the component mounts
     fetchGoal();
-    setCurrentUsage(500); // Mock usage
+    setCurrentUsage(500); // Mock usage 
   }, []);
 
   useEffect(() => {
@@ -78,7 +78,7 @@ const GoalComponent = ({ userId }) => {
     }
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/goals/${userId}', {
+      const response = await fetch('http://127.0.0.1:8000/api/v1/goals/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -223,17 +223,11 @@ const GoalComponent = ({ userId }) => {
             <View style={styles.buttonContainer}>
              <TouchableOpacity style={styles.buttonWithIcon} onPress={handleDeleteGoal}>
                 <Text style={styles.buttonText}>حذف</Text>
-                <Image 
-                  source={require('../assets/icons/delete.png')} 
-                  style={styles.icon} 
-                />
+                <Image source={require('../assets/icons/delete.png')} style={styles.icon} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.buttonWithIcon} onPress={applyEditedGoal}>
                 <Text style={styles.buttonText}>تعديل</Text>
-                <Image 
-                  source={require('../assets/icons/edit.png')} 
-                  style={styles.icon} 
-                />
+                <Image source={require('../assets/icons/edit.png')} style={styles.icon} />
               </TouchableOpacity>
             </View>
           </>
@@ -312,25 +306,25 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',  // Center the buttons
+    justifyContent: 'center',  
     marginTop: 10,
   },
   buttonWithIcon: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#82C7FA',  // Customize the background color
+    backgroundColor: '#82C7FA',  
     padding: 10,
     borderRadius: 10,
     justifyContent: 'center',
-    marginHorizontal: 20,  // Add horizontal margin to control the space between buttons
+    marginHorizontal: 20,  
   },
   buttonWithoutIcon: {
-    backgroundColor: '#82C7FA',  // Same background color as تعديل button
+    backgroundColor: '#82C7FA',  
     padding: 10,
     borderRadius: 10,
     marginHorizontal: 110,
     justifyContent: 'center',
-    alignItems: 'center',  // Center the text in the button
+    alignItems: 'center',  
   },  
   buttonText: {
     fontSize: 16,
