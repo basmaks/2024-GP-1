@@ -131,7 +131,7 @@ export default function SignUpScreen() {
             setBirthdate('');
             setCity('');
             Alert.alert('تسجيل', 'تم إنشاء الحساب بنجاح');
-            navigation.navigate('ConnectScreen');
+            navigation.navigate('Step0');
           }
         } catch (error) {
           console.error('Error creating user:', error.message);
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
         marginTop: 25,
     },
     buttonText: {
-        fontSize: 20,
+        fontSize: 18,
         fontWeight: 'bold',
         textAlign: 'center',
         color: 'black',
