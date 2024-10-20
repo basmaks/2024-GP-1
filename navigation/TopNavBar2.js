@@ -1,3 +1,5 @@
+//navbar with a back button for all other screens
+
 import React from 'react';
 import { View, TouchableOpacity, Image, StyleSheet, SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
