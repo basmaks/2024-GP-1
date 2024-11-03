@@ -37,7 +37,7 @@ import DailyChart from "../charts/DailyChart";
 import GoalComponent from "../components/GoalComponent"; // Import GoalComponent
 
 export default function AnalyticsScreen() {
-  const [selectedPeriodIndex, setSelectedPeriodIndex] = useState(4); // 'مباشر' as default
+  const [selectedPeriodIndex, setSelectedPeriodIndex] = useState(5); // 'مباشر' as default
   const [selectedUnitIndex, setSelectedUnitIndex] = useState(2); // 'كيلو واط/ساعة' as default
   const periodOptions = ["مخصص", "سنة", "شهر", "أسبوع", "يوم", "مباشر"];
   const unitOptions = ["أمبير", "واط", "كيلو واط/ساعة"];
@@ -56,7 +56,7 @@ export default function AnalyticsScreen() {
   const [lowestConsumption, setLowestConsumption] = useState(0);
   const today = new Date();
   const firstDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of the current month
-  const secondDate = today;
+  const secondDate = today; 
 
   // Fetch monthly and daily consumption when component mounts
   useEffect(() => {

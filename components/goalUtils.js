@@ -1,6 +1,6 @@
 export const deleteGoal = async (userId) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/goals/${userId}`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/goals/${userId}`, {
         method: 'DELETE',
       });
       const data = await response.json();
@@ -12,7 +12,7 @@ export const deleteGoal = async (userId) => {
   
   export const editGoal = async (userId, newGoalAmount) => {
     try {
-      const response = await fetch(`http://127.0.0.1:8000/goals/${userId}`, {
+      const response = await fetch(`http://127.0.0.1:8000/api/v1/goals/${userId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

@@ -11,7 +11,7 @@ from backend.routers import data, outlets, goals
 from backend.firebase import db
 from backend.utils import format_date_in_arabic
 from backend.utils import arabic_days, arabic_months
-from backend.config import EMVUE_EMAIL, EMVUE_PASSWORD  # Import credentials
+from backend.config import EMVUE_EMAIL, EMVUE_PASSWORD  
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -39,7 +39,7 @@ def fetch_energy_usage():
     from datetime import datetime, timedelta
 
     vue = PyEmVue()
-    vue.login(username=EMVUE_EMAIL, password=EMVUE_PASSWORD)  # Use imported credentials
+    vue.login(username=EMVUE_EMAIL, password=EMVUE_PASSWORD)  
     devices = vue.get_devices()
 
     while True:
@@ -47,7 +47,7 @@ def fetch_energy_usage():
         for device in devices:
             usage = vue.get_device_list_usage(deviceGids=[device.device_gid], instant=None, scale=Scale.SECOND.value, unit=Unit.KWH.value)
             channels_data = usage[device.device_gid].channels
-            total_channels_usage_kWh = sum(channel.usage for channel in channels_data.values())
+            total_channels_usage_kWh = sum(channel.usage if channel.usage is not None else 0 for channel in channels_data.values())
             timestamp = datetime.now(pytz.timezone('Asia/Riyadh')).replace(microsecond=0)
 
             with lock:
@@ -59,7 +59,7 @@ def fetch_energy_usage():
                             avg_usage_data = previous_usage_data.copy() if previous_usage_data else {
                                 'total_channels_usage_kWh': 0,
                                 'channels': {channel_num: {'name': channel.name, 'usage': 0} for channel_num, channel in channels_data.items()}
-                            }
+                            } 
 
                             missing_data = {
                                 'total_channels_usage_kWh': avg_usage_data['total_channels_usage_kWh'],
@@ -102,6 +102,25 @@ def fetch_energy_usage():
         fetch_duration = time.time() - start_time
         if fetch_duration < 1:
             time.sleep(1 - fetch_duration)
+
+@app.get("/test")
+async def test_route():
+    return {"message": "FastAPI is working"}
+
+@app.get("/test_firestore")
+async def test_firestore():
+    try:
+        # Attempt to retrieve documents from a test collection
+        test_ref = db.collection("goals").limit(1).stream()
+        test_data = [doc.to_dict() for doc in test_ref]
+        
+        if not test_data:
+            return {"message": "No documents found in 'goals' collection"}
+        
+        return {"message": "Firestore connection successful", "data": test_data}
+    except Exception as e:
+        return {"error": str(e)}
+
 
 # Start background tasks on startup
 @app.on_event("startup")

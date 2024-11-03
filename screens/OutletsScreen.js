@@ -54,7 +54,7 @@ export default function OutletsScreen() {
           <View style={styles.infoContainer}>
 
           <View style={styles.todayInfo}>
-            <Text style={styles.largeText}>اليوم <Text style={styles.largeUsage}>{totalConsumption.toFixed(4)} <Text style={styles.smallUsage}>ك.و.س</Text></Text></Text>
+            <Text style={styles.largeText}>إجمالي الاستهلاك اليومي <Text style={styles.largeUsage}>{totalConsumption.toFixed(4)} <Text style={styles.smallUsage}>ك.و.س</Text></Text></Text>
             <Image source={require('../assets/icons/bolt2.png')} style={styles.boltIcon} />
             </View>
 
@@ -143,7 +143,7 @@ largeText: {
   },
   loadingText: {
     fontSize: 20,
-    color: 'white',
+    color: 'gray',
   },
 
 });

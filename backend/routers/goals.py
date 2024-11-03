@@ -48,6 +48,8 @@ def get_last_day_of_month():
 class GoalRequest(BaseModel):
     userId: str
     goalAmount: float
+
+
    
 # Route to ADD active goal for a user
 @router.post("/")
@@ -77,16 +79,19 @@ async def add_goal(goal_request: GoalRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# Route to GET the active goal for a specific user
-@router.get("/goals/{userId}")
+
+# Route to GET a goal for a user
+@router.get("/{userId}")
 async def get_goal(userId: str):
     try:
+        # Modify the query to check if documents match both 'userId' and 'status'
         goals_ref = db.collection("goals").where("userId", "==", userId).where("status", "==", "Active").limit(1)
         goal = goals_ref.stream()
-
+        
         goal_data = None
         for g in goal:
             goal_data = g.to_dict()
+            print("Retrieved goal data:", goal_data)  # Log for inspection
 
         if not goal_data:
             raise HTTPException(status_code=404, detail="No active goal found")
@@ -94,9 +99,10 @@ async def get_goal(userId: str):
         return goal_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
 
 # Route to DELETE a goal for a user
-@router.delete("/goals/{userId}")
+@router.delete("/{userId}")
 async def delete_goal(userId: str):
     try:
         goals_ref = db.collection("goals").where("userId", "==", userId).where("status", "==", "Active").limit(1)
@@ -117,7 +123,7 @@ async def delete_goal(userId: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 # Route to EDIT a goal for a user
-@router.put("/goals/{userId}")
+@router.put("/{userId}")
 async def edit_goal(userId: str, goal_request: GoalRequest):
     try:
         if not (1 <= goal_request.goalAmount <= 10000):
