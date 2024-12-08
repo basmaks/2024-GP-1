@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, Image } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, Image, ActivityIndicator } from 'react-native';
 import TopNavBar from '../navigation/TopNavBar';
 import BottomNavBar from '../navigation/BottomNavBar';
 import Outlets_GraphChart from '../charts/Outlets_GraphChart'; 
@@ -38,8 +38,12 @@ export default function OutletsScreen() {
 
   if (loading) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>جارٍ تحميل البيانات...</Text>
+      <View style={{ flex: 1 }}>
+        <TopNavBar />
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#82C7FA" />
+        </View>
+        <BottomNavBar />
       </View>
     );
   }
@@ -53,9 +57,15 @@ export default function OutletsScreen() {
         <View style={styles.lowerContainer}>
           <View style={styles.infoContainer}>
 
-          <View style={styles.todayInfo}>
-            <Text style={styles.largeText}>إجمالي الاستهلاك اليومي <Text style={styles.largeUsage}>{totalConsumption.toFixed(4)} <Text style={styles.smallUsage}>ك.و.س</Text></Text></Text>
-            <Image source={require('../assets/icons/bolt2.png')} style={styles.boltIcon} />
+            <View style={styles.todayInfo}>
+              <Text style={styles.largeText}>
+                إجمالي الاستهلاك اليومي 
+                <Text style={styles.largeUsage}>
+                  {totalConsumption.toFixed(4)} 
+                  <Text style={styles.smallUsage}> ك.و.س</Text>
+                </Text>
+              </Text>
+              <Image source={require('../assets/icons/bolt2.png')} style={styles.boltIcon} />
             </View>
 
             {/* Display the outlet consumption if available */}
@@ -80,32 +90,28 @@ export default function OutletsScreen() {
 const styles = StyleSheet.create({
   scrollContent: {
     textAlign: 'right',  // Right-align the content
-    
   },
   lowerContainer: {
-    //flex: 1,
     backgroundColor: '#143638',
     paddingHorizontal: 20,
     marginTop: 10,
   },
-  infoContainer: {  // Add this style
-    justifyContent: 'flex-end', // Align content to the end (right)
-    alignItems: 'flex-end', // Align content to the end (right)
+  infoContainer: {
+    justifyContent: 'flex-end',
+    alignItems: 'flex-end',
   },
-
-
-//whats inside the todayInfo div cuz of the bolt icon and many texts
-todayInfo: {
-  marginTop: 5,
-  marginBottom: 30,
-  flexDirection: 'row',
-  justifyContent: 'space-between', // Adjusted justifyContent
-},
-largeText: {
-  color: themeColors.lightb,
-  fontSize: 20,
-  fontWeight: 'bold',
-},
+  todayInfo: {
+    marginTop: 5,
+    marginBottom: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  largeText: {
+    color: themeColors.lightb,
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 20,
+  },
   largeUsage: {
     color: themeColors.lightb,
     fontSize: 20,
@@ -119,31 +125,23 @@ largeText: {
     height: 22,
     alignSelf: 'flex-end',
   },
-  //end of todayInfo
-
   infoText: {
     color: 'white',
     fontSize: 16,
     paddingBottom: 10,
     marginBottom: 10,
   },
-
   icon: {
     width: 20,
     height: 22,
     marginRight: 5,
   },
   boldText: {
-    fontWeight: 'bold',  // Make "مقبس" bold
+    fontWeight: 'bold',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  loadingText: {
-    fontSize: 20,
-    color: 'gray',
-  },
-
 });

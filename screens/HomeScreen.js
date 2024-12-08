@@ -14,6 +14,10 @@ import Kwh_DailyChart from '../charts/Kwh_DailyChart';
 import Kwh_WeeklyChart from '../charts/Kwh_WeeklyChart';
 import Kwh_MonthlyChart from '../charts/Kwh_MonthlyChart';
 import Kwh_YearlyChart from '../charts/Kwh_YearlyChart';
+import DailyChart from "../charts/DailyChart";
+import WeeklyChart from "../charts/WeeklyChart";
+import MonthlyChart from "../charts/MonthlyChart";
+import YearlyChart from "../charts/YearlyChart";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { collection, getFirestore, where, getDocs, addDoc, updateDoc, setDoc, doc } from 'firebase/firestore';
 
@@ -25,17 +29,6 @@ export default function HomeScreen() {
   const [dailyCost, setDailyCost] = useState(0); // State for daily cost
   const [selectedOptionIndex, setSelectedOptionIndex] = useState(4); // Default selector bar choice is مباشر
   const options = ['سنة', 'شهر', 'أسبوع', 'يوم', 'مباشر'];
-
-  // Mapping for selector display
-  const displayTextMapping = {
-    0: 'معدل استهلاك الكهرباء لسنة 2024\n(كيلو واط/ساعة)',
-    1: 'معدل استهلاك الكهرباء لشهر مايو 2024\n(كيلو واط/ساعة)',
-    2: 'معدل استهلاك الكهرباء الأسبوعي \n من الأحد 12/5/2024 إلى السبت 18/5/2024 \n (كيلو واط/ساعة)',
-    3: ` معدل استهلاك الكهرباء يوم الأربعاء 15/5/2024 \n (كيلو واط/ساعة)`,
-    4: 'معدل استهلاك الكهرباء المباشر\n(كيلو واط/ساعة)'
-  };
-
-  const getDisplayText = (index) => displayTextMapping[index];
 
   const fetchDailyConsumptionAndCost = async () => {
     try {
@@ -111,12 +104,12 @@ export default function HomeScreen() {
           </View>
           <View style={styles.infoContainer}>
             <View style={styles.infoBox}>
-              <Text style={styles.infoText}>التكلفة</Text>
+              <Text style={styles.infoText1}>تكلفة اليوم</Text>
               <Text style={styles.largeInfo}>{dailyCost}</Text>
               <Text style={styles.infoText}>ريال سعودي</Text>
             </View>
             <View style={styles.infoBox}>
-              <Text style={styles.infoText}>اليوم</Text>
+              <Text style={styles.infoText1}>استهلاك اليوم</Text>
               <Text style={styles.largeInfo}>{dailyConsumption}</Text>
               <Text style={styles.infoText}>كيلو واط / ساعة</Text>
             </View>
@@ -130,14 +123,11 @@ export default function HomeScreen() {
               setSelectedOptionIndex(index);
             }}
           />
-          <Text style={styles.chartHeaderText}>
-            {getDisplayText(selectedOptionIndex)}
-          </Text>
           {selectedOptionIndex === 4 && <Kwh_RealTimeChart apiUrl="http://127.0.0.1:8000/api/v1/data/bySecond" />}
-          {selectedOptionIndex === 3 && <Kwh_DailyChart />}
-          {selectedOptionIndex === 2 && <Kwh_WeeklyChart />}
-          {selectedOptionIndex === 1 && <Kwh_MonthlyChart />}
-          {selectedOptionIndex === 0 && <Kwh_YearlyChart />}
+          {selectedOptionIndex === 3 && <DailyChart />}
+          {selectedOptionIndex === 2 && <WeeklyChart />}
+          {selectedOptionIndex === 1 && <MonthlyChart />}
+          {selectedOptionIndex === 0 && <YearlyChart />}
         </View>
 
       </ScrollView>
@@ -145,12 +135,6 @@ export default function HomeScreen() {
     </View>
   );
 }
-
-    /*<View style={styles.outletsBox}>
-        <TouchableOpacity onPress={() => navigation.navigate('Outlets')}>
-        <Text style={styles.outletsText}>متابعة استهلاك المقابس الكهربائية</Text>
-      </TouchableOpacity>
-    </View>*///was for the outlets button
 
 const styles = StyleSheet.create({
   upperContainer: {
@@ -196,6 +180,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     textAlign: 'center',
+  },
+  infoText1: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
   outletsBox: {
     borderRadius: 20,

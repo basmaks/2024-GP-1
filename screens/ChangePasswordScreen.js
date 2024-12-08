@@ -129,8 +129,8 @@ const ChangePasswordScreen = () => {
             <ChecklistItem icon={<Icons.CheckCircleIcon stroke={passwordChecklist.isLengthValid ? 'green' : 'gray'} />} text="طوله 8 أحرف على الأقل" isCompleted={passwordChecklist.isLengthValid} />
           </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleChangePasswordPress}>
-          <Text style={styles.buttonText}>تغيير كلمة المرور</Text>
+        <TouchableOpacity onPress={handleChangePasswordPress} style={[styles.buttonBlue, { marginTop: 20 }]}>
+          <Text style={styles.buttonTextBlue}>تغيير كلمة المرور</Text>
         </TouchableOpacity>
       </View>
       
@@ -212,7 +212,18 @@ const styles = StyleSheet.create({
     marginTop: 15,
   
   },
-
+  buttonBlue: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    backgroundColor: '#82C7FA',
+    marginVertical: 5,
+  },
+  buttonTextBlue: {
+    fontSize: 16,
+    color: '#000',
+    textAlign: 'center',
+  },
 });
 
 export default ChangePasswordScreen;

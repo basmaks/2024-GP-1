@@ -338,8 +338,8 @@ return (
                         onClose={toggleCityDropdown}
                     />
 
-      <TouchableOpacity onPress={handleUpdateProfile}>
-        <Text style={styles.buttonText}>تحديث الملف الشخصي</Text>
+      <TouchableOpacity onPress={handleUpdateProfile} style={[styles.buttonBlue, { marginTop: 20 }]}>
+        <Text style={styles.buttonTextBlue}>تحديث الملف الشخصي</Text>
       </TouchableOpacity>
     </View>
 
@@ -373,7 +373,6 @@ const styles = StyleSheet.create({
     color: '#143638',
     
   },
-  
   descriptionText: {
     fontSize: 16,
     color: '#143638', // Adjust color as needed
@@ -433,5 +432,16 @@ required: {
   fontSize: 16,
   marginLeft: 5,
 },
-
+buttonBlue: {
+  paddingVertical: 12,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  backgroundColor: '#82C7FA',
+  marginVertical: 5,
+},
+buttonTextBlue: {
+  fontSize: 16,
+  color: '#000',
+  textAlign: 'center',
+},
 });

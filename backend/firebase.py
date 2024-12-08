@@ -15,3 +15,5 @@ if cred_json_path and os.path.exists(cred_json_path):
     db = firestore.Client(credentials=credentials)
 else:
     raise ValueError("FIREBASE_CREDENTIALS environment variable is not set or the path is invalid.")
+
+print(db)

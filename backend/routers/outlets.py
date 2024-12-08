@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from datetime import datetime
+from calendar import monthrange
 import pytz
 from google.cloud.firestore_v1._helpers import DatetimeWithNanoseconds
 from google.api_core.retry import Retry
@@ -47,6 +48,53 @@ async def get_outlet_consumption_by_day():
                     outlet_consumption[channel_id] += usage
 
         return {"outlet_consumption": outlet_consumption}
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")
+
+@router.get("/byMonth")
+async def get_outlet_consumption_by_month(outlet_id: str):
+    try:
+        # Initialize monthly consumption dictionary
+        monthly_consumption = {str(month): 0 for month in range(1, 13)}
+
+        # Fetch documents from Firestore
+        docs = db.collection("electricity_usage").stream(retry=Retry(deadline=60))
+
+        for doc in docs:
+            data = doc.to_dict()
+
+            # Ensure 'timestamp' exists and is a Firestore timestamp
+            if "timestamp" not in data or not isinstance(data["timestamp"], (DatetimeWithNanoseconds, datetime)):
+                continue
+
+            timestamp = data["timestamp"]
+            
+            # Convert Firestore timestamp to native Python datetime
+            if isinstance(timestamp, DatetimeWithNanoseconds):
+                timestamp = datetime.fromtimestamp(timestamp.timestamp(), local_tz)
+
+            # Ensure 'channels' exist in the document
+            channels = data.get("channels", {})
+            if not isinstance(channels, dict):
+                continue
+
+            # Process the specified outlet ID
+            channel_data = channels.get(outlet_id, {})
+            
+            # Handle case where channel_data is not a dictionary
+            if isinstance(channel_data, dict):
+                usage = channel_data.get("usage", 0)
+            elif isinstance(channel_data, (int, float)):
+                usage = channel_data
+            else:
+                usage = 0
+
+            # Increment usage for the corresponding month
+            month = timestamp.month
+            monthly_consumption[str(month)] += usage
+
+        return {"outlet_id": outlet_id, "monthly_consumption": monthly_consumption}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal Server Error: {str(e)}")

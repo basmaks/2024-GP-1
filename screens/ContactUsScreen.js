@@ -62,8 +62,8 @@ export default function ContactUsScreen() {
                     value={message}
                     onChangeText={setMessage}
                 />
-                <TouchableOpacity style={styles.button} onPress={sendMessageToFirestore}>
-                    <Text style={styles.buttonText}>إرسال الرسالة</Text>
+                <TouchableOpacity style={[styles.buttonBlue, { marginTop: 20 }]} onPress={sendMessageToFirestore}>
+                    <Text style={styles.buttonTextBlue}>إرسال الرسالة</Text>
                 </TouchableOpacity>
     </View>
     <BottomNavBar/>
@@ -123,5 +123,16 @@ buttonText: {
   color: '#82C8FF',
   paddingVertical: 35,
 },
-
+buttonBlue: {
+  paddingVertical: 12,
+  paddingHorizontal: 20,
+  borderRadius: 8,
+  backgroundColor: '#82C7FA',
+  marginVertical: 5,
+},
+buttonTextBlue: {
+  fontSize: 16,
+  color: '#000',
+  textAlign: 'center',
+},
 });

@@ -36,6 +36,7 @@ import ConStep12 from '../screens/connectionSteps/ConStep12';
 import ConStep13 from '../screens/connectionSteps/ConStep13';
 import ConStep14 from '../screens/connectionSteps/ConStep14';
 import ConStep15 from '../screens/connectionSteps/ConStep15';
+import ExportDataScreen from "../screens/ExportDataScreen";
 
 
 const Stack = createNativeStackNavigator();
@@ -63,6 +64,7 @@ export default function AppNavigation() {
           <Stack.Screen name="DeviceConnection" options={{headerShown: false}} component={DeviceConnectionScreen}/>
           <Stack.Screen name="ContactUs" options={{headerShown: false}} component={ContactUsScreen}/>
           <Stack.Screen name="Outlets" options={{headerShown: false}} component={OutletsScreen}/>
+          <Stack.Screen name="ExportData" options={{ headerShown: false }} component={ExportDataScreen} />
 
           <Stack.Screen name="Step0" options={{headerShown: false}} component={ConStep0}/>
           <Stack.Screen name="Step1" options={{headerShown: false}} component={ConStep1}/>

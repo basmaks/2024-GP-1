@@ -7,7 +7,7 @@ import pytz
 import threading
 from google.cloud import firestore
 from google.oauth2 import service_account
-from backend.routers import data, outlets, goals
+from backend.routers import data, outlets, goals, export
 from backend.firebase import db
 from backend.utils import format_date_in_arabic
 from backend.utils import arabic_days, arabic_months
@@ -20,6 +20,7 @@ app = FastAPI()
 app.include_router(data.router, prefix="/api/v1/data", tags=["data"])
 app.include_router(outlets.router, prefix="/api/v1/outlets", tags=["outlets"])
 app.include_router(goals.router, prefix="/api/v1/goals", tags=["goals"])
+app.include_router(export.router, prefix="/api/v1/export", tags=["export"])
 
 # Set your local timezone (for Riyadh, use UTC+3)
 local_tz = pytz.timezone("Asia/Riyadh")

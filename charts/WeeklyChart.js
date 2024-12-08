@@ -1,29 +1,24 @@
-//DailyChart.js
-
 import React, { useState, useEffect } from 'react';
 import { View, Dimensions, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { LineChart } from 'react-native-chart-kit';
 import moment from 'moment';
 
-const DailyChart = ({ selectedUnit }) => {
+const WeeklyChart = ({ selectedUnit }) => {
   const [tooltip, setTooltip] = useState({ visible: false, xValue: '', yValue: '', x: 0, y: 0 });
   const [chartData, setChartData] = useState(null); // Dynamic data
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const screenWidth = Dimensions.get('window').width;
 
-  const getTimeForIndex = index => {
-    const hour = index % 24;
-    const amPm = hour < 12 ? 'ص' : 'م';
-    const formattedHour = hour % 12 === 0 ? 12 : hour % 12;
-    return `${formattedHour}:00 ${amPm}`;
+  const getDayForIndex = index => {
+    const daysInArabic = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    return daysInArabic[index];
   };
 
-  const getCurrentDayInArabic = () => {
-    const daysInArabic = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
-    const currentDayIndex = moment().day();
-    const arabicDay = daysInArabic[currentDayIndex];
-    return `${arabicDay} ${moment().format('DD/MM/YYYY')}`;
+  const getCurrentWeekRangeInArabic = () => {
+    const startOfWeek = moment().startOf('week').format('DD/MM/YYYY');
+    const endOfWeek = moment().endOf('week').format('DD/MM/YYYY');
+    return `من ${startOfWeek} إلى ${endOfWeek}`;
   };
 
   // Fetch data from the backend
@@ -31,16 +26,16 @@ const DailyChart = ({ selectedUnit }) => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://127.0.0.1:8000/api/v1/data/byHour'); // Use your endpoint for daily data
+        const response = await fetch('http://127.0.0.1:8000/api/v1/data/byWeek'); // Use your endpoint for weekly data
         const data = await response.json();
   
-        if (!response.ok || !data.hourly_consumption) {
+        if (!response.ok || !data.daily_consumption_kWh) {
           throw new Error('Error fetching data');
         }
   
-        const labels = Array.from({ length: 24 }, (_, i) => (i % 6 === 0 ? getTimeForIndex(i) : ''));
+        const labels = Object.keys(data.daily_consumption_kWh).map((_, index) => getDayForIndex(index));
         const datasets = [{
-          data: data.hourly_consumption.map(val => convertUnits(val)), // Apply unit conversion
+          data: Object.values(data.daily_consumption_kWh).map(val => convertUnits(val)), // Apply unit conversion
         }];
   
         setChartData({
@@ -81,11 +76,11 @@ const DailyChart = ({ selectedUnit }) => {
         xPos = screenWidth - 130;
       }
 
-      const time = getTimeForIndex(index);
+      const day = getDayForIndex(index);
 
       setTooltip({
         visible: true,
-        xValue: time,
+        xValue: day,
         yValue: value.toFixed(2),
         x: xPos,
         y: yPos
@@ -105,8 +100,8 @@ const DailyChart = ({ selectedUnit }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>معدل إستهلاك الكهرباء اليومي ({selectedUnit})</Text>
-      <Text style={styles.subTitle}>{getCurrentDayInArabic()}</Text>
+      <Text style={styles.title}>معدل إستهلاك الكهرباء الأسبوعي ({selectedUnit})</Text>
+      <Text style={styles.subTitle}>{getCurrentWeekRangeInArabic()}</Text>
       {chartData && (
         <LineChart
           data={chartData}
@@ -120,7 +115,7 @@ const DailyChart = ({ selectedUnit }) => {
             if (tooltip.visible) {
               return (
                 <View style={styles.tooltipStyle(tooltip.x, tooltip.y)}>
-                  <Text style={styles.tooltipText}>{`الوقت: ${tooltip.xValue}`}</Text>
+                  <Text style={styles.tooltipText}>{`اليوم: ${tooltip.xValue}`}</Text>
                   <Text style={styles.tooltipText}>{`الاستهلاك: ${tooltip.yValue} ${selectedUnit}`}</Text>
                 </View>
               );
@@ -152,7 +147,7 @@ const styles = StyleSheet.create({
     backgroundGradientTo: '#f2f2f2',
     fillShadowGradient: '#82c8ff',
     fillShadowGradientOpacity: 0.8,
-    decimalPlaces: 2, // Adjust decimal places for better readability
+    decimalPlaces: 2,
     color: (opacity = 1) => `rgba(0, 163, 255, ${opacity})`,
     labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
     propsForDots: {
@@ -181,4 +176,4 @@ const styles = StyleSheet.create({
   }
 });
 
-export default DailyChart;
+export default WeeklyChart;

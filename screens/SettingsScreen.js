@@ -10,16 +10,11 @@ import { auth} from '../config/firebase'
 import EditProfileScreen from '../screens/EditProfileScreen';
 import { signOut } from 'firebase/auth'
 import { db } from '../config/firebase';
+import ExportData from "./ExportDataScreen";
 import { useEffect } from 'react';
 import { collection, query, where, getDocs } from 'firebase/firestore';
-
-
-
-
 import TopNavBar from '../navigation/TopNavBar';
 import BottomNavBar from '../navigation/BottomNavBar';
-
-
 
 
 export default function SettingsScreen({route}) {
@@ -42,6 +37,10 @@ export default function SettingsScreen({route}) {
   const handleContactUs = () => {
     navigation.navigate('ContactUs');
   };
+
+  const handleExportData = () => {
+    navigation.navigate('ExportData');
+  };  
 
   const handleLogout = async ()=>{
     await signOut(auth);
@@ -108,6 +107,10 @@ export default function SettingsScreen({route}) {
           <Text style={styles.buttonText}>تواصل معنا  </Text>
         </TouchableOpacity>
 
+        <TouchableOpacity
+            onPress={() => navigation.navigate('ExportData')} style={[styles.button, { marginTop: 20 }]}>
+            <Text style={styles.buttonText}> تحميل بيانات الاستهلاك</Text>
+        </TouchableOpacity>
 
   </View>
   
@@ -188,7 +191,6 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline', // Underline the text
 
   },
-
   logoutButtonPosition: {
     justifyContent: 'flex-end', // Align content to the end (right)
     alignItems: 'flex-end', // Align content to the end (right)

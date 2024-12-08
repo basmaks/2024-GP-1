@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"; 
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
 import * as Icons from "react-native-heroicons/solid";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { signOut } from "firebase/auth"; 
@@ -33,6 +33,10 @@ import Kwh_FilterChart from '../charts/Kwh_FilterChart';
 import Amp_FilterChart from '../charts/Amp_FilterChart';
 import W_FilterChart from '../charts/W_FilterChart';
 import DailyChart from "../charts/DailyChart";
+import WeeklyChart from "../charts/WeeklyChart";
+import MonthlyChart from "../charts/MonthlyChart";
+import YearlyChart from "../charts/YearlyChart";
+import DateRangeChart from "../charts/DateRangeChart";
 
 import GoalComponent from "../components/GoalComponent"; // Import GoalComponent
 
@@ -41,7 +45,6 @@ export default function AnalyticsScreen() {
   const [selectedUnitIndex, setSelectedUnitIndex] = useState(2); // 'كيلو واط/ساعة' as default
   const periodOptions = ["مخصص", "سنة", "شهر", "أسبوع", "يوم", "مباشر"];
   const unitOptions = ["أمبير", "واط", "كيلو واط/ساعة"];
-  const [showDatePicker, setShowDatePicker] = useState(false); // State for showing date picker
   const [startDate, setStartDate] = useState(new Date()); // Start date for date range filter
   const [endDate, setEndDate] = useState(new Date()); 
   const [chartData, setChartData] = useState([]);
@@ -57,6 +60,7 @@ export default function AnalyticsScreen() {
   const today = new Date();
   const firstDate = new Date(today.getFullYear(), today.getMonth(), 1); // First day of the current month
   const secondDate = today; 
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   // Fetch monthly and daily consumption when component mounts
   useEffect(() => {
@@ -68,31 +72,38 @@ export default function AnalyticsScreen() {
     fetchConsumptionRange();
   }, []);
 
-  const fetchDataAndAggregate = async (startDate, endDate) => {
+  const handleDateSelection = (start, end) => {
+    // Handle the selected date range
+    setStartDate(start);
+    setEndDate(end);
+  
+    // Fetch the data based on the selected range
+    fetchDatabyDateRange(start, end);
+  
+    // Hide the date picker
+    setShowDatePicker(false);
+  };
+
+  const fetchDatabyDateRange = async (startDate, endDate) => {
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/v1/data/aggregateData', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch("http://127.0.0.1:8000/api/v1/data/byDateRange", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           startDate: startDate.toISOString(),
           endDate: endDate.toISOString(),
         }),
       });
   
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`Error: ${response.statusText}`);
   
       const data = await response.json();
-      setChartData(data.data); // Update your state with the received data
+      setChartData(data); // Use the backend-provided data as is
     } catch (error) {
-      console.error('Failed to fetch aggregated data:', error);
+      console.error("Failed to fetch data:", error);
+      setChartData(null); // Reset chartData on error
     }
   };
-  
-
 
 // Fetch monthly consumption and cost
 const fetchMonthlyConsumption = async (sharedUserId) => {
@@ -135,12 +146,12 @@ const fetchMonthlyConsumption = async (sharedUserId) => {
     }
   };
 
-  const handleDateSelection = (start, end) => {
+  {/* const handleDateSelection = (start, end) => {
     setStartDate(start);
     setEndDate(end);
-    fetchDataAndAggregate(start, end);
+    fetchDatabyDateRange(start, end);
     setShowDatePicker(false); // Hide the picker after date selection
-  };
+  }; */}
 
   const renderChartComponent = () => {
     let chartComponent = null; // Default to null if no match
@@ -154,41 +165,48 @@ const fetchMonthlyConsumption = async (sharedUserId) => {
           unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_RealTimeChart apiUrl="http://127.0.0.1:8000/api/v1/data/bySecond" /> : null
         );
         break;
-      case "يوم":
-        chartComponent = (
-          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <DailyChart apiUrl="http://127.0.0.1:8000/api/v1/data/byHour" /> :
-          unitOptions[selectedUnitIndex] === "واط" ? <DailyChart apiUrl="http://127.0.0.1:8000/api/v1/data/byHour" /> :
-          unitOptions[selectedUnitIndex] === "أمبير" ? <DailyChart apiUrl="http://127.0.0.1:8000/api/v1/data/byHour" /> : null
-        );
-        break;
-      case "أسبوع":
-        chartComponent = (
-          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_WeeklyChart /> :
-          unitOptions[selectedUnitIndex] === "واط" ? <W_WeeklyChart /> :
-          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_WeeklyChart /> : null
-        );
-        break;
-      case "شهر":
-        chartComponent = (
-          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_MonthlyChart /> :
-          unitOptions[selectedUnitIndex] === "واط" ? <W_MonthlyChart /> :
-          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_MonthlyChart /> : null
-        );
-        break;
-      case "سنة":
-        chartComponent = (
-          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_YearlyChart /> :
-          unitOptions[selectedUnitIndex] === "واط" ? <W_YearlyChart /> :
-          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_YearlyChart /> : null
-        );
-        break;
-      case "مخصص": 
-        chartComponent = (
-          unitOptions[selectedUnitIndex] === "كيلو واط/ساعة" ? <Kwh_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} /> :
-          unitOptions[selectedUnitIndex] === "واط" ? <W_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} /> :
-          unitOptions[selectedUnitIndex] === "أمبير" ? <Amp_FilterChart chartData={chartData} startDate={startDate} endDate={endDate} /> : null
-        );
-        break;
+        case "يوم":
+          chartComponent = (
+            <DailyChart 
+              apiUrl="http://127.0.0.1:8000/api/v1/data/byHour" 
+              selectedUnit={unitOptions[selectedUnitIndex]} 
+            />
+          );
+          break;        
+          case "أسبوع":
+            chartComponent = (
+              <WeeklyChart 
+                apiUrl="http://127.0.0.1:8000/api/v1/data/byWeek" 
+                selectedUnit={unitOptions[selectedUnitIndex]} 
+              />
+            );
+            break;
+            case "شهر":
+              chartComponent = (
+                <MonthlyChart 
+                  apiUrl="http://127.0.0.1:8000/api/v1/data/byMonth" 
+                  selectedUnit={unitOptions[selectedUnitIndex]} 
+                />
+              );
+              break;
+              case "سنة":
+                chartComponent = (
+                  <YearlyChart 
+                    selectedUnit={unitOptions[selectedUnitIndex]} 
+                  />
+                );
+                break;              
+                case "مخصص":
+                  chartComponent = (
+                    <DateRangeChart
+                      apiUrl="http://127.0.0.1:8000/api/v1/data/byDateRange"
+                      selectedUnit={unitOptions[selectedUnitIndex]}
+                      startDate={startDate}
+                      endDate={endDate}
+                    />
+                  );
+                  break;
+
     }
 
     return chartComponent;
@@ -209,35 +227,53 @@ const fetchMonthlyConsumption = async (sharedUserId) => {
 
           <View style={styles.dataContainer}>
             <View style={styles.infoContainer}>
-              <View style={styles.infoBox}>
-                <Text style={styles.infoText}> تقدير الفاتورة</Text>
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText1}> تقدير الفاتورة</Text>
+              {monthlyCost === 0 ? (
+                <ActivityIndicator size="large" color="#82C7FA" />
+              ) : (
                 <Text style={styles.largeInfo}>{monthlyCost}</Text>
-                <Text style={styles.infoText}>ريال سعودي</Text>
-              </View>
-              <View style={styles.infoBox}>
-                <Text style={styles.infoText}>الاستهلاك</Text>
-                <Image source={require('../assets/icons/meter.png')} style={styles.meterIcon} />
-                <View style={styles.textBelowGauge}>
-                  <Text style={styles.textBelowGaugeText}>
-                    {classification === "Low" ? "منخفض" : classification === "Average" ? "متوسط" : "مرتفع"}
-                  </Text>
-                </View>
-              </View>
+              )}
+              <Text style={styles.infoText}>ريال سعودي</Text>
+            </View>
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText1}>مستوى الاستهلاك</Text>
+              {classification === "" ? (
+                <ActivityIndicator size="large" color="#82C7FA" />
+              ) : (
+                <>
+                  <Image source={require('../assets/icons/meter.png')} style={styles.meterIcon} />
+                  <View style={styles.textBelowGauge}>
+                    <Text style={styles.textBelowGaugeText}>
+                      {classification === "Low" ? "منخفض" : classification === "Average" ? "متوسط" : "مرتفع"}
+                    </Text>
+                  </View>
+                </>
+              )}
             </View>
           </View>
+        </View>
 
           <View style={styles.dataContainer}>
             <View style={styles.infoContainer}>
-              <View style={styles.infoBox}>
-                <Text style={styles.infoText}>إستهلاك الشهر</Text>
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText1}>إستهلاك الشهر</Text>
+              {monthlyConsumption === 0 ? (
+                <ActivityIndicator size="large" color="#82C7FA" />
+              ) : (
                 <Text style={styles.largeInfo}>{monthlyConsumption}</Text>
-                <Text style={styles.infoText}>كيلو واط/ساعة</Text>
-              </View>
-              <View style={styles.infoBox}>
-                <Text style={styles.infoText}>إستهلاك اليوم</Text>
+              )}
+              <Text style={styles.infoText}>كيلو واط/ساعة</Text>
+            </View>
+            <View style={styles.infoBox}>
+              <Text style={styles.infoText1}>إستهلاك اليوم</Text>
+              {dailyConsumption === 0 ? (
+                <ActivityIndicator size="large" color="#82C7FA" />
+              ) : (
                 <Text style={styles.largeInfo}>{dailyConsumption}</Text>
-                <Text style={styles.infoText}>كيلو واط/ساعة</Text>
-              </View>
+              )}
+              <Text style={styles.infoText}>كيلو واط/ساعة</Text>
+            </View>
             </View>
           </View>
 
@@ -298,17 +334,16 @@ const fetchMonthlyConsumption = async (sharedUserId) => {
           />
         </View>
 
-        {showDatePicker ? (
-          <View>
-            <DateRangePicker
-                onDatesSelected={(start, end) => {
-                    setStartDate(start);
-                    setEndDate(end);
-                    fetchDataAndAggregate(start, end);  // Call to fetch the aggregated data
-                }}
-            />
-          </View>
-        ) : null}
+        {showDatePicker && (
+          <DateRangePicker
+            onDatesSelected={(start, end) => {
+              setStartDate(start);
+              setEndDate(end);
+              fetchDatabyDateRange(start, end);
+            }}
+            setShowDatePicker={setShowDatePicker} // Pass the function to hide the date picker
+          />
+        )}
 
         <View style={{ marginTop: 0 }}>
           <Text style={styles.rightAlignedLabel}>الوحدة</Text>
@@ -397,6 +432,14 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     textAlign: "center",
+    marginTop: 10,
+  },
+  infoText1: {
+    color: "#fff",
+    fontSize: 16,
+    textAlign: "center",
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   largeInfo: {
     color: "#82C7FA",
