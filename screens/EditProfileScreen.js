@@ -251,7 +251,7 @@ return (
           <TextInput
         style={styles.input}
         placeholder={userData.firstName}
-        placeholderTextColor='black' 
+        placeholderTextColor='gray' 
         onChangeText={value => {
           console.log('Previous userData:', userData);
           setUserData(prevState => ({ ...prevState, firstName: value }));
@@ -262,21 +262,21 @@ return (
       <TextInput
         style={styles.input}
         placeholder={userData.lastName}
-        placeholderTextColor='black' 
+        placeholderTextColor='gray' 
         onChangeText={value => setUserData(prevState => ({ ...prevState, lastName: value }))}
       />
       <Text style={styles.label}>اسم المستخدم<Text style={styles.required}> *</Text></Text>
       <TextInput
         style={styles.input}
         placeholder={userData.username}
-        placeholderTextColor='black' 
+        placeholderTextColor='gray' 
         onChangeText={value => setUserData(prevState => ({ ...prevState, username: value }))}
       />
       <Text style={styles.label}>البريد الالكتروني<Text style={styles.required}> *</Text></Text>
       <TextInput
         style={styles.input}
         placeholder={userData.email}
-        placeholderTextColor='black' 
+        placeholderTextColor='gray' 
         onChangeText={value => setUserData(prevState => ({ ...prevState, email: value }))}
       />
 
@@ -284,7 +284,7 @@ return (
       <TextInput
         style={styles.input}
         placeholder={userData.phoneNumber}
-        placeholderTextColor='black' 
+        placeholderTextColor='gray' 
         onChangeText={value => setUserData(prevState => ({ ...prevState, phoneNumber: value }))}
       />
 
@@ -320,7 +320,7 @@ return (
             style={styles.input}
             value={birthdate}
             placeholder={userData.birthdate} // Placeholder set to userData.birthdate
-            placeholderTextColor='black' 
+            placeholderTextColor='gray' 
             editable={false}
             onPressIn={toggleDatePicker}
         />
@@ -329,7 +329,7 @@ return (
 
 <Text style={styles.label}>المدينة<Text style={styles.required}> *</Text></Text>
        <TouchableOpacity style={styles.input} onPress={toggleCityDropdown}>
-                      <Text style={[{ textAlign: 'right' }, {color: city ? 'black' : 'black' }]}>{userData.city}</Text>
+                      <Text style={[{ textAlign: 'right' }, {color: city ? 'gray' : 'black' }]}>{userData.city}</Text>
                       </TouchableOpacity>
                       <CityDropdown
                         visible={isCityDropdownVisible}
