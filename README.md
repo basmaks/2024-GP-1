@@ -3,13 +3,13 @@
 
 ## About Murshid
 
-Murshid is a revolutionary mobile application designed to transform how users monitor and manage electricity consumption in their homes, with a primary focus on safety alerts and anomaly detection to promptly inform users of high spikes or sudden drops in electricity usage. This proactive approach enhances household safety and prevents damage caused by electrical faults. Setting itself apart as the only app of its kind in the region, Murshid provides live updates, real-time safety alerts, and a fully localized experience in Arabic. Unlike traditional energy monitoring tools that simply display numbers, Murshid empowers users with actionable insights, offering them peace of mind and full control over their electricity consumption.
+Murshid is a mobile application designed to transform how users monitor and manage electricity consumption in their homes, with a primary focus on safety alerts and anomaly detection to promptly inform users of high spikes or sudden drops in electricity usage. This proactive approach enhances household safety and prevents damage caused by electrical faults. Setting itself apart as the only app of its kind in the region, Murshid provides live updates, real-time safety alerts, and a fully localized experience in Arabic. Unlike traditional energy monitoring tools that simply display numbers, Murshid empowers users with actionable insights, offering them peace of mind and full control over their electricity consumption.
 
 ## Tech Stack 
 
-- **Backend**: Python and FastAPI
 - **Frontend**: React Native with Expo
-- **Database**: Firebase Firestore
+- **Backend**: Python, FastAPI, and Firebase Firestore
+- **Anomaly Detection Model**: Isolation Forest
 - **Hardware**: Energy Monitor Device installed on the electrical panel
 
 ## How to Install
