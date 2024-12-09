@@ -1,63 +1,49 @@
 ![Murshid App](https://github.com/basmaks/2024-GP-1/blob/main/banner.png?raw=true)
-# 2024-GP-1
-# Murshid: An Energy Monitoring, Recommendation, and Safety Alert System
+# Murshid: A Comprehensive Home Electricity Monitoring and Safety Solution
 
-## Introduction
+## About Murshid
 
-Murshid is a mobile application that gives homeowners precise control over their electricity consumption. It displays real-time usage data, offers personalized recommendations, and alerts users to safety issues. 
-The app enables informed decision-making to optimize energy use, reduce costs, and enhance household safety.
+Murshid is a revolutionary mobile application designed to transform how users monitor and manage electricity consumption in their homes, with a primary focus on safety alerts and anomaly detection to promptly inform users of high spikes or sudden drops in electricity usage. This proactive approach enhances household safety and prevents damage caused by electrical faults. Setting itself apart as the only app of its kind in the region, Murshid provides live updates, real-time safety alerts, and a fully localized experience in Arabic. Unlike traditional energy monitoring tools that simply display numbers, Murshid empowers users with actionable insights, offering them peace of mind and full control over their electricity consumption.
 
+## Tech Stack 
 
-## Technology 
+- **Backend**: Python and FastAPI
+- **Frontend**: React Native with Expo
+- **Database**: Firebase Firestore
+- **Hardware**: Energy Monitor Device installed on the electrical panel
 
-- **Frontend**: React Native with Expo for iOS and Android app development.
-- **Backend**: Python for API integration.
-- **Emulator**: Xcode for iOS and Android Studio for Android.
-- **Database**: Firebase Firestore for real-time data management.
+## How to Install
 
+1. **Clone the repository** `https://github.com/basmaks/2024-GP-1.git`
+2. **For Android**: 
+-   Open the repository link on your Android mobile device.
+-   Download the Murshid APK file.
+-   Go to your Downloads folder.
+-   Tap on the APK file and allow installation when prompted.
+-   Once the installation is complete, open the app.
+3. **For iOS**: 
+-   Open the repository link on your iOS mobile device.
+-   Download the Murshid IPA file.
+-   Go to your Downloads folder.
+-   Tap on the IPA file and confirm installation when prompted.
+-   Once the installation is complete, open the app.
 
-## Launching Instructions
+## How to Run 
 
-### Prerequisites
+1. **Open the repository in Visual Studio Code** 
 
-- Install Node.js and npm.
-- Install Expo CLI.
-- Android Studio for Android emulation and Xcode for iOS emulation.
-- Visual Studio Code is recommended for development.
+2. **Terminal 1: Run the Backend Server**
+- Export the Firebase credentials: `export FIREBASE_CREDENTIALS="path/to/firebase/credentials/json/file"`
+- Start the server for local testing using a simulator: `uvicorn backend.main:app --reload`
+- If testing with the **Expo app**, **IPA**, or **APK file**, run the server with the following command: `uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000`
 
+3. **Terminal 2: Start Background Sync**
+- Navigate to backend folder: `cd backend`
+- Export the Firebase credentials: `export FIREBASE_CREDENTIALS="path/to/firebase/credentials/json/file"`
+- Run the background task script to start syncing real-time data: `python3 background_task.py`
 
-### Installation 
-
-**1. Clone the repository:**
-   - `git clone https://github.com/basmaks/2024-GP-1.git`
-   - Navigate to the project directory: `cd 2024-GP-1`
-
-**2. Install dependencies:**
-   - Install all necessary dependencies using the following command:
-`
-npm install
-`
-
-
-### Configuration 
-
-- **Firebase configuration:** Add the Firebase service account credentials path to api.py.
-- **Expo configuration:** Ensure app.json is set up with the correct settings.
-
-
-### Usage
-
-1. **Start the Flask server**:
-   - Run the following command in `api.py` to start the Flask server: `python api.py`. This step is necessary to enable real-time data syncing, which populates the data charts in the React Native app.
-
-2. **Launch the application using Expo**:
-   - Run the following command to start the Metro bundler and launch the application: `npx expo start`.
-
-3. **Launch on iOS or Android**:
-   - **For emulators:** The iOS Simulator or Android Emulator will automatically open if configured.
-   - **For physical devices:** Use the Expo client app on your device then scan the QR code displayed in the Expo CLI to open your project directly on your device.
+4. **Terminal 3: Expo App (Only)**
+- If using the Expo app, start the app with: `npx expo start`
 
 
-### Additional Notes
-
-- Review `metro.config.js` for any necessary configuration adjustments.
+**Note:** If you are using the app on a physical device, make sure to update the backend API endpoints in the app to match your computer's IP address (e.g., `http://<your-computer-ip>:8000`). 
