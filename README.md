@@ -47,3 +47,8 @@ Murshid is a revolutionary mobile application designed to transform how users mo
 
 
 **Note:** If you are using the app on a physical device, make sure to update the backend API endpoints in the app to match your computer's IP address (e.g., `http://<your-computer-ip>:8000`). 
+
+## Anomaly Detection Model
+
+The Murshid system employs an Isolation Forest model for anomaly detection, achieving an F1 score of 0.982. This unsupervised model effectively identifies high spikes and sudden drops in electricity consumption. To review the model's implementation and performance, visit the [Google Colab notebook](https://colab.research.google.com/drive/1z7yoQ8q5YFUIOsd1jvU6-UKr5BBlhWe4?usp=sharing).
+
