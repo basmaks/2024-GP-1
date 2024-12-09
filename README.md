@@ -1,4 +1,4 @@
-![Murshid App](https://github.com/basmaks/2024-GP-1/blob/main/banner.png?raw=true)
+![Murshid App](banner.png)
 # Murshid: A Comprehensive Home Electricity Monitoring and Safety Solution
 
 ## About Murshid
