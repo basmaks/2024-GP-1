@@ -15,7 +15,8 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.exofter.murshid"
     },
     "android": {
       "package": "com.exofter.murshid",
@@ -27,6 +28,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "4c1322b0-9c03-4234-8594-dcaf3d011ccc"
+      }
     }
   }
 }
