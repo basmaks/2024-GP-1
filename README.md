@@ -42,7 +42,7 @@ Murshid is a mobile application designed to transform how users monitor and mana
   - Export the Firebase credentials: `export FIREBASE_CREDENTIALS="path/to/firebase/credentials/json/file"`
   - Run the background task script to start syncing real-time data: `python3 background_task.py`
 
-4. **Terminal 3: Expo App (Only)**
+4. **Terminal 3: Expo Go App (Only)**
   - If using the Expo app, start the app with: `npx expo start`
 
 
