@@ -134,7 +134,7 @@ export default function RecommendationsScreen() {
 
         // Add more conditions as needed...
       } catch (error) {
-        console.error('Error fetching real-time usage:', error);
+        //console.error('Error fetching real-time usage:', error);
       }
     };
     
@@ -182,7 +182,7 @@ export default function RecommendationsScreen() {
           console.error('No push token available.');
         }
       } catch (error) {
-        console.error('Error handling tip:', error);
+       // console.error('Error handling tip:', error);
       }
     };
     
