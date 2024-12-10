@@ -34,8 +34,9 @@ Murshid is a mobile application designed to transform how users monitor and mana
 
 2. **Terminal 1: Run the Backend Server**
   - Export the Firebase credentials: `export FIREBASE_CREDENTIALS="path/to/firebase/credentials/json/file"`
-  - Start the server for local testing using a simulator: `uvicorn backend.main:app --reload`
-  - If testing with the **Expo app**, **IPA**, or **APK file**, run the server with the following command: `uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000`
+  - Run the server:
+    - For Local Testing (e.g., using a simulator): `uvicorn backend.main:app --reload`
+    - For Mobile Testing (using the Expo app, IPA, or APK file): `uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000`
 
 3. **Terminal 2: Start Background Sync**
   - Navigate to backend folder: `cd backend`
